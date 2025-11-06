@@ -138,6 +138,17 @@ function calculateSavings($price, $originalPrice) {
       transition: transform 0.2s;
     }
 
+    .badge-new {
+      background: none !important;
+      border: none !important;
+      color: #ff3b30 !important; /* or #ff9500 for orange */
+      font-weight: 700;
+      font-size: 0.6em;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: none !important;
+    }
+
     .color-dot-modern:hover {
       transform: scale(1.15);
       border: 2px solid rgba(0, 0, 0, 0.3);

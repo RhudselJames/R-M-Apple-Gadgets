@@ -61,7 +61,7 @@ function getColorHex($color) {
         'cloud white' => '#f5f5f5',
         'light gold' => '#e8d9b8'
     ];
-    return $colorMap[strtolower(trim($color))] ?? '#c8c8c8'; 
+    return $colorMap[strtolower(trim($color))] ?? '#c8c8c8';}
 
 // Helper function to format condition badge
 function getConditionBadge($condition) {

@@ -44,7 +44,7 @@ try {
 $stmt->execute();
 $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // You can reuse your previous variables too
+
     $totalProducts = $productCount;
     $totalOrders = $orderCount;
     $totalCustomers = $userCount;
@@ -1781,7 +1781,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         document.getElementById('product-category').dispatchEvent(new Event('change'));
       }
       
-      // NEW STORAGE HANDLING - supports multiple values
+      // STORAGE HANDLING
       const storageSelect = document.getElementById('product-storage');
       const storageValues = product.storage ? product.storage.split(',').map(s => s.trim()) : [];
       Array.from(storageSelect.options).forEach(option => {
@@ -1824,7 +1824,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     document.getElementById('productForm').addEventListener('submit', function(e) {
       e.preventDefault();
       
-      // Get selected storage options as comma-separated string
+      // Get selected storage options
       const storageSelect = document.getElementById('product-storage');
       const selectedStorage = Array.from(storageSelect.selectedOptions)
         .map(opt => opt.value)

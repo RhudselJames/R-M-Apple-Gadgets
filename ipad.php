@@ -1,8 +1,8 @@
 <?php
 session_start();
 require_once 'db_connect.php';
-$category = "iPad"; // change this depending on the page
-$categoryPage = "ipad.php"; // link to that category page
+$category = "iPad"; 
+$categoryPage = "ipad.php";
 
 // Fetch all iPad products from database
 $stmt = $conn->prepare("
@@ -58,12 +58,10 @@ function getColorHex($color) {
         'black' => '#1d1d1f',
         'green' => '#c8ddd0',
         'yellow' => '#fef0c7',
-        // Add more iPad colors as needed
         'cloud white' => '#f5f5f5',
         'light gold' => '#e8d9b8'
     ];
-    return $colorMap[strtolower(trim($color))] ?? '#c8c8c8'; // Default to light gray instead of #ddd
-}
+    return $colorMap[strtolower(trim($color))] ?? '#c8c8c8'; 
 
 // Helper function to format condition badge
 function getConditionBadge($condition) {

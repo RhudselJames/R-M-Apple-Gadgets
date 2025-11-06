@@ -1,9 +1,4 @@
 <?php
-/**
- * Include this file at the top of admindash.php to protect it
- * Add this line at the very top of admindash.php:
- * <?php include 'auth_check.php'; ?>
- */
 
 session_start();
 
@@ -35,6 +30,6 @@ try {
     $stmt->bindParam(':user_id', $_SESSION['user_id']);
     $stmt->execute();
 } catch(PDOException $e) {
-    // Silently fail - don't expose database errors
+    
 }
 ?>

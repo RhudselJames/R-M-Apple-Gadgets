@@ -93,7 +93,7 @@ $productSpecs = [
     // iPhone 14 Pro Max
     16 => ['display' => '6.7-inch Super Retina XDR', 'resolution' => '2796 x 1290 at 460 ppi', 'dynamic_island' => true, 'camera_main' => '48MP (f/1.78)', 'camera_ultra' => '12MP Ultra Wide', 'camera_tele' => '12MP 3x Telephoto', 'video' => '4K Dolby Vision 60fps', 'battery' => 'Up to 29 hours video', 'chip' => 'A16 Bionic', 'water_resistance' => 'IP68', 'connectivity' => '5G, Wi-Fi 6, BT 5.3'],
 
-    // iPhone 14 Pro Max (duplicate ID retained intentionally)
+    // iPhone 14 Pro Max 
     17 => ['display' => '6.7-inch Super Retina XDR', 'resolution' => '2796 x 1290 at 460 ppi', 'dynamic_island' => true, 'camera_main' => '48MP (f/1.78)', 'camera_ultra' => '12MP Ultra Wide', 'camera_tele' => '12MP 3x Telephoto', 'video' => '4K Dolby Vision 60fps', 'battery' => 'Up to 29 hours video', 'chip' => 'A16 Bionic', 'water_resistance' => 'IP68', 'connectivity' => '5G, Wi-Fi 6, BT 5.3'],
 
     18 => ['display' => '11-inch Liquid Retina', 'resolution' => '2388 x 1668 at 264 ppi', 'promotion' => true, 'camera_main' => '12MP Wide', 'camera_ultra' => '10MP Ultra Wide', 'front_camera' => '12MP TrueDepth', 'video' => '4K at 24/30/60 fps, ProRes', 'battery' => 'Up to 10 hours', 'chip' => 'M2', 'apple_pencil' => 'Apple Pencil (2nd gen)', 'connectivity' => 'Wi-Fi 6E, 5G (cellular models)', 'ports' => 'Thunderbolt / USB 4'],
@@ -376,8 +376,8 @@ function renderStars($rating) {
             <?php endif; ?>
 
             <?php
-            // IDs of MacBook products — adjust if needed
-            $macbookIDs = [35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46];
+        
+            $macbookIDs = [35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49];
             ?>
 
             <?php if (!in_array($product['id'], $macbookIDs)): ?>

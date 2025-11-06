@@ -2,7 +2,7 @@
 session_start();
 include 'db_connect.php'; 
 
-// Fetch featured products from database (only products marked as featured)
+
 try {
     $stmt = $conn->prepare("
         SELECT id, name, description, price, original_price, image_url, condition_type, stock_quantity
@@ -14,7 +14,7 @@ try {
     $stmt->execute();
     $featuredProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // If no featured products, fall back to newest 4 products
+    
     if (count($featuredProducts) === 0) {
         $stmt = $conn->prepare("
             SELECT id, name, description, price, original_price, image_url, condition_type, stock_quantity
@@ -393,10 +393,10 @@ try {
     <!-- Navigation Links -->
     <nav>
       <ul class="navbar-nav d-flex flex-row gap-3 mb-0">
-        <li class="nav-item"><a class="nav-link text-white" href="iphone.php">iPhone</a></li>
-        <li class="nav-item"><a class="nav-link text-white active" href="ipad.php">iPad</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="macbook.php">MacBook</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="support.php">Support</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="#" onclick="handleNavClick(event, 'iphone.php')">iPhone</a></li>
+        <li class="nav-item"><a class="nav-link text-white active" href="#" onclick="handleNavClick(event, 'ipad.php')">iPad</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="#" onclick="handleNavClick(event, 'macbook.php')">MacBook</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="#" onclick="handleNavClick(event, 'support.php')">Support</a></li>
       </ul>
     </nav>
 
@@ -693,4 +693,3 @@ try {
     });
   </script>
 </body>
-</html>

@@ -2,8 +2,8 @@
 <?php
 session_start();
 require_once 'db_connect.php';
-$category = "iPhone"; // change this depending on the page
-$categoryPage = "iphone.php"; // link to that category page
+$category = "iPhone"; 
+$categoryPage = "iphone.php"; 
 
 // Fetch all iPhone products from database
 $stmt = $conn->prepare("

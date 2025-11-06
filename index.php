@@ -2,7 +2,7 @@
 session_start();
 include 'db_connect.php'; 
 
-
+// Fetch featured products from database (only products marked as featured)
 try {
     $stmt = $conn->prepare("
         SELECT id, name, description, price, original_price, image_url, condition_type, stock_quantity
@@ -14,7 +14,7 @@ try {
     $stmt->execute();
     $featuredProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    
+    // If no featured products, fall back to newest 4 products
     if (count($featuredProducts) === 0) {
         $stmt = $conn->prepare("
             SELECT id, name, description, price, original_price, image_url, condition_type, stock_quantity
@@ -403,7 +403,7 @@ try {
     <!-- Icons + Username -->
     <div class="d-flex align-items-center gap-3">
       <span class="fs-5">🔍</span>
-      <a href="cart.php" style="text-decoration: none; font-size: 1.1em;">🛒</a>
+      <a href="#" onclick="handleNavClick(event, 'cart.php')" style="text-decoration: none; font-size: 1.1em;">🛒</a>
 
       <?php if (isset($_SESSION['username'])): ?>
       <div class="dropdown d-inline-block ms-2">
@@ -494,7 +494,7 @@ try {
       <div class="product-grid">
         <?php if (count($featuredProducts) > 0): ?>
           <?php foreach ($featuredProducts as $product): ?>
-            <a href="product-details.php?id=<?= $product['id'] ?>" class="product-card">
+            <a href="#" onclick="handleProductClick(event, <?= $product['id'] ?>)" class="product-card">
               <?php 
                 $badgeText = 'New';
                 $badgeClass = 'new';
@@ -518,7 +518,7 @@ try {
                 <?php endif; ?>
                 From ₱<?= number_format($product['price']) ?>
               </p>
-              <button class="btn-buy" onclick="event.preventDefault(); window.location.href='product-details.php?id=<?= $product['id'] ?>'">View Details</button>
+              <button class="btn-buy" onclick="event.stopPropagation(); handleProductClick(event, <?= $product['id'] ?>)">View Details</button>
             </a>
           <?php endforeach; ?>
         <?php else: ?>
@@ -621,6 +621,17 @@ try {
     // Check if user is logged in
     const isLoggedIn = <?= isset($_SESSION['username']) ? 'true' : 'false' ?>;
 
+    // Handle navigation clicks
+    function handleNavClick(event, page) {
+      event.preventDefault();
+      if (!isLoggedIn) {
+        const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+        loginModal.show();
+      } else {
+        window.location.href = page;
+      }
+    }
+
     // Handle category clicks
     function handleCategoryClick(category) {
       if (!isLoggedIn) {
@@ -629,6 +640,17 @@ try {
       } else {
         // Redirect to category page
         window.location.href = `${category}.php`;
+      }
+    }
+
+    // Handle product clicks
+    function handleProductClick(event, productId) {
+      event.preventDefault();
+      if (!isLoggedIn) {
+        const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+        loginModal.show();
+      } else {
+        window.location.href = `product-details.php?id=${productId}`;
       }
     }
 
@@ -693,3 +715,4 @@ try {
     });
   </script>
 </body>
+</html>

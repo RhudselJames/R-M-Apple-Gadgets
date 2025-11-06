@@ -141,7 +141,7 @@ function calculateSavings($price, $originalPrice) {
     .badge-new {
       background: none !important;
       border: none !important;
-      color: #ff3b30 !important; /* or #ff9500 for orange */
+      color: #ff3b30 !important;
       font-weight: 700;
       font-size: 0.6em;
       text-transform: uppercase;

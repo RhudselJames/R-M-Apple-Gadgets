@@ -1749,6 +1749,10 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
       document.getElementById('productForm').reset();
       document.getElementById('product-id').value = '';
       document.getElementById('product-status').value = 'active';
+      document.getElementById('macbook-chip-field').style.display = 'none';
+      document.getElementById('macbook-memory-field').style.display = 'none';
+      document.getElementById('macbook-screen-field').style.display = 'none';
+      document.getElementById('product-category').dispatchEvent(new Event('change'));
       document.getElementById('productModal').classList.add('active');
     }
 
@@ -1767,18 +1771,16 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
       document.getElementById('product-stock').value = product.stock_quantity;
       document.getElementById('product-sku').value = product.sku || '';
       document.getElementById('product-color').value = product.color || '';
-      document.getElementById('product-category').addEventListener('change', function() {
-        const isMacBook = this.value === 'macbook';
-        document.getElementById('macbook-chip-field').style.display = isMacBook ? 'block' : 'none';
-        document.getElementById('macbook-memory-field').style.display = isMacBook ? 'block' : 'none';
-        document.getElementById('macbook-screen-field').style.display = isMacBook ? 'block' : 'none';
-      });
+      
       document.getElementById('product-chip').value = product.chip || '';
       document.getElementById('product-unified-memory').value = product.unified_memory || '';
       document.getElementById('product-screen-size').value = product.screen_size || '';
 
+      // Show MacBook fields if editing a MacBook product
       if (product.category === 'macbook') {
-        document.getElementById('product-category').dispatchEvent(new Event('change'));
+        document.getElementById('macbook-chip-field').style.display = 'block';
+        document.getElementById('macbook-memory-field').style.display = 'block';
+        document.getElementById('macbook-screen-field').style.display = 'block';
       }
       
       // STORAGE HANDLING
@@ -1983,6 +1985,13 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         display.textContent = selected.length > 0 ? selected.join(', ') : 'None';
         display.style.color = selected.length > 0 ? '#0071e3' : '#86868b';
         display.style.fontWeight = selected.length > 0 ? '600' : 'normal';
+      });
+
+      document.getElementById('product-category').addEventListener('change', function() {
+        const isMacBook = this.value === 'macbook';
+        document.getElementById('macbook-chip-field').style.display = isMacBook ? 'block' : 'none';
+        document.getElementById('macbook-memory-field').style.display = isMacBook ? 'block' : 'none';
+        document.getElementById('macbook-screen-field').style.display = isMacBook ? 'block' : 'none';
       });
     });
 

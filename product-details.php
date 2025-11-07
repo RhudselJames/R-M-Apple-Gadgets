@@ -117,6 +117,10 @@ $productSpecs = [
 
     // iPad Pro 11-inch (5th Gen)
     25 => ['display' => '11-inch Ultra Retina XDR (Tandem OLED)', 'resolution' => '2420 x 1668 at 264 ppi', 'promotion' => true, 'camera_main' => '12MP Wide', 'front_camera' => '12MP Landscape Ultra Wide', 'video' => '4K at 24/30/60 fps, ProRes', 'battery' => 'Up to 10 hours', 'chip' => 'M4', 'apple_pencil' => 'Apple Pencil Pro / 2nd gen', 'connectivity' => 'Wi-Fi 6E, 5G (cellular models)', 'ports' => 'Thunderbolt / USB 4'],
+
+    50 => ['display' => '6.7-inch Super Retina XDR', 'resolution' => '2796 x 1290 at 460 ppi', 'dynamic_island' => true, 'camera_main' => '48MP (f/1.78)', 'camera_ultra' => '12MP Ultra Wide', 'camera_tele' => '12MP 5x Telephoto', 'video' => '4K Dolby Vision 60fps', 'battery' => 'Up to 29 hours video', 'chip' => 'A17 Pro', 'water_resistance' => 'IP68', 'connectivity' => '5G, Wi-Fi 6E, BT 5.3'],
+
+    52 => ['display' => '6.1-inch Super Retina XDR', 'resolution' => '2556 x 1179 at 460 ppi', 'dynamic_island' => true, 'camera_main' => '48MP (f/1.6)', 'camera_ultra' => '12MP Ultra Wide', 'camera_tele' => null, 'video' => '4K Dolby Vision 60fps', 'battery' => 'Up to 20 hours video', 'chip' => 'A16 Bionic', 'water_resistance' => 'IP68', 'connectivity' => '5G, Wi-Fi 6, BT 5.3'],
     
 ];
 
@@ -377,7 +381,7 @@ function renderStars($rating) {
 
             <?php
         
-            $macbookIDs = [35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49];
+            $macbookIDs = [35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 51];
             ?>
 
             <?php if (!in_array($product['id'], $macbookIDs)): ?>

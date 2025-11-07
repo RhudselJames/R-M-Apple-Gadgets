@@ -652,14 +652,6 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <span class="nav-icon">👥</span>
         <span>Customers</span>
       </a>
-      <a class="nav-item" onclick="showSection('reports')">
-        <span class="nav-icon">📈</span>
-        <span>Reports</span>
-      </a>
-      <a class="nav-item" onclick="showSection('settings')">
-        <span class="nav-icon">⚙️</span>
-        <span>Settings</span>
-      </a>
       <a href="logout.php" class="nav-item" style="color: #ff3b30;">
         <span class="nav-icon">🚪</span>
         <span>Logout</span>
@@ -1279,7 +1271,6 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <th>Phone</th>
                 <th>Total Orders</th>
                 <th>Joined Date</th>
-                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="customers-table-body">
@@ -1289,86 +1280,6 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
       </div>
 
-    <!-- Reports Section -->
-    <div id="reports" class="content-section">
-      <div class="section-card">
-        <h3 class="section-title">Sales Reports</h3>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-label">Today's Sales</div>
-            <div class="stat-value">₱145,980</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">This Week</div>
-            <div class="stat-value">₱892,450</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">This Month</div>
-            <div class="stat-value">₱2.4M</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">This Year</div>
-            <div class="stat-value">₱18.5M</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section-card">
-        <h3 class="section-title">Top Selling Products</h3>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Rank</th>
-              <th>Product</th>
-              <th>Units Sold</th>
-              <th>Revenue</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>1</td>
-              <td>iPhone 16 Pro Max</td>
-              <td>124</td>
-              <td>₱10,786,760</td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td>iPhone 15</td>
-              <td>98</td>
-              <td>₱4,899,020</td>
-            </tr>
-            <tr>
-              <td>3</td>
-              <td>iPhone 16</td>
-              <td>87</td>
-              <td>₱3,479,130</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Settings Section -->
-    <div id="settings" class="content-section">
-      <div class="section-card">
-        <h3 class="section-title">Store Settings</h3>
-        <div class="form-grid">
-          <div class="form-group full-width">
-            <label class="form-label">Store Name</label>
-            <input type="text" class="form-input" value="R&M Apple Gadgets">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Tax Rate (%)</label>
-            <input type="number" class="form-input" value="12">
-          </div>
-        </div>
-        <div style="margin-top: 30px;">
-          <button class="btn-primary">Save Changes</button>
-          <button class="btn-secondary">Cancel</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Add/Edit Product Modal -->
   <div id="productModal" class="modal">
@@ -1892,9 +1803,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         'products': 'Products',
         'inventory': 'Inventory',
         'orders': 'Orders',
-        'customers': 'Customers',
-        'reports': 'Reports',
-        'settings': 'Settings'
+        'customers': 'Customers'
       };
       document.getElementById('page-title').textContent = titles[sectionId] || 'Dashboard';
 
@@ -2043,9 +1952,6 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <td>${customer.phone || 'N/A'}</td>
             <td>${customer.order_count || 0}</td>
             <td>${joinedDate}</td>
-            <td>
-              <button class="action-btn edit-btn" onclick="viewCustomerDetails(${customer.id})">View</button>
-            </td>
           </tr>
         `;
       }).join('');

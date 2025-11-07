@@ -29,7 +29,6 @@ function getAllCustomers() {
     
     $search = $_GET['search'] ?? '';
     
-    // First, let's check what columns exist - Updated to match your database structure
     $sql = "
         SELECT 
             u.id,

@@ -847,7 +847,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
       </div>
     </div>
 
-    <<!-- Orders Section -->
+    <!-- Orders Section -->
     <div id="orders" class="content-section">
       <div class="section-card">
         <div class="section-header">
@@ -1269,7 +1269,6 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="section-card">
           <div class="section-header">
             <h3 class="section-title">Customer Management</h3>
-            <input type="text" id="customer-search" class="search-bar" placeholder="Search customers...">
           </div>
           <table class="data-table">
             <thead>
@@ -1447,6 +1446,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
               <option value="M4">M4</option>
               <option value="M4 Pro">M4 Pro</option>
               <option value="M4 Max">M4 Max</option>
+              <option value="M3">M3</option>
             </select>
           </div>
 

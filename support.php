@@ -368,7 +368,9 @@ session_start();
       </div>
 
       <div class="team-member">
-        <div class="team-avatar">M</div>
+        <div class="team-avatar">
+            <img src="images/MarManaay.jpg">
+        </div>
         <h4>Mar Christian M. Mana-ay</h4>
         <p>CTO</p>
         <p><a href="mailto:mcManaay@mcm.edu.com">mcManaay@mcm.edu.com</a></p>

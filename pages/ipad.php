@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'db_connect.php';
+require_once __DIR__ . '/../backend/config/db_connect.php';
 $category = "iPad"; 
 $categoryPage = "ipad.php";
 
@@ -85,7 +85,7 @@ function calculateSavings($price, $originalPrice) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>iPad - R&M Apple Gadgets</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     /* Product Image Adjustments */
@@ -209,14 +209,14 @@ function calculateSavings($price, $originalPrice) {
     }
 
     .badge-new {
-        background: #1d1d1f;
-        color: white;
-        padding: 6px 12px;
-        border-radius: 6px;
-        font-size: 0.85em;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+      background: none !important;
+      border: none !important;
+      color: #ff3b30 !important;
+      font-weight: 700;
+      font-size: 0.75em;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: none !important;
     }
 
     .product-title-group {
@@ -232,7 +232,7 @@ function calculateSavings($price, $originalPrice) {
     }
 
     .product-price {
-      font-size: 1.2em;
+      font-size: 1.1em;
       font-weight: 600;
       color: #1d1d1f;
       margin: 15px 0;
@@ -292,7 +292,7 @@ function calculateSavings($price, $originalPrice) {
     <!-- Navigation Links -->
     <nav>
       <ul class="navbar-nav d-flex flex-row gap-3 mb-0">
-        <li class="nav-item"><a class="nav-link text-white" href="index.php">Home</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="../index.php">Home</a></li>
         <li class="nav-item"><a class="nav-link text-white" href="iphone.php">iPhone</a></li>
         <li class="nav-item"><a class="nav-link text-white active" href="ipad.php">iPad</a></li>
         <li class="nav-item"><a class="nav-link text-white" href="macbook.php">MacBook</a></li>
@@ -318,7 +318,7 @@ function calculateSavings($price, $originalPrice) {
           </li>
           <li><hr class="dropdown-divider"></li>
           <li>
-            <a class="dropdown-item text-danger" href="logout.php">
+            <a class="dropdown-item text-danger" href="../backend/auth/logout.php">
               <i class="fas fa-sign-out-alt"></i> Logout
             </a>
           </li>
@@ -362,7 +362,7 @@ function calculateSavings($price, $originalPrice) {
           <h3><?= htmlspecialchars($product['name']) ?></h3>
         </div>
         <div class="product-image">
-          <img src="<?= htmlspecialchars($product['image_url']) ?>" 
+          <img src="../<?= htmlspecialchars($product['image_url']) ?>" 
                alt="<?= htmlspecialchars($product['name']) ?>"
                onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22280%22 height=%22280%22%3E%3Crect fill=%22%23f5f5f7%22 width=%22280%22 height=%22280%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2386868b%22 font-size=%2260%22%3E📱%3C/text%3E%3C/svg%3E'">
         </div>
@@ -415,7 +415,7 @@ function calculateSavings($price, $originalPrice) {
           <p class="refurb-subtitle"><?= ucfirst($product['condition_type']) ?></p>
         </div>
         <div class="product-image">
-          <img src="<?= htmlspecialchars($product['image_url']) ?>" 
+          <img src="../<?= htmlspecialchars($product['image_url']) ?>" 
                alt="<?= htmlspecialchars($product['name']) ?>"
                onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22280%22 height=%22280%22%3E%3Crect fill=%22%23f5f5f7%22 width=%22280%22 height=%22280%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2386868b%22 font-size=%2260%22%3E📱%3C/text%3E%3C/svg%3E'">
         </div>

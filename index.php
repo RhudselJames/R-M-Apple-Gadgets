@@ -1,8 +1,8 @@
 <?php 
 session_start();
-include 'db_connect.php'; 
+include 'backend/config/db_connect.php';
 
-// Fetch featured products from database (only products marked as featured)
+// Fetch featured products from database
 try {
     $stmt = $conn->prepare("
         SELECT id, name, description, price, original_price, image_url, condition_type, stock_quantity
@@ -14,7 +14,6 @@ try {
     $stmt->execute();
     $featuredProducts = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // If no featured products, fall back to newest 4 products
     if (count($featuredProducts) === 0) {
         $stmt = $conn->prepare("
             SELECT id, name, description, price, original_price, image_url, condition_type, stock_quantity
@@ -40,6 +39,7 @@ try {
   
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -55,7 +55,6 @@ try {
     .icons { display: flex; align-items: center; gap: 20px; font-size: 1.1em; color: #f5f5f7; opacity: 0.8; }
     .icons span:hover { opacity: 1; cursor: pointer; }
 
-    /* Username Button Styling */
     .btn-outline-light.btn-sm {
       border: 1px solid rgba(245, 245, 247, 0.3);
       color: #f5f5f7;
@@ -117,7 +116,7 @@ try {
       color: #fff; 
     }
 
-    /* Category Showcase Section */
+    /* Category Cards */
     .category-showcase {
       max-width: 1400px;
       margin: 60px auto;
@@ -160,6 +159,7 @@ try {
       position: relative;
       z-index: 2;
       color: #fff;
+      text-align: left;
     }
     .category-card h2 {
       font-size: 2.5em;
@@ -187,32 +187,23 @@ try {
       text-decoration: underline;
     }
 
-    /* Category Card Image */
     .category-card-img {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 60%;
+      width: 70%;
+      max-width: 450px;
       height: auto;
       object-fit: contain;
       z-index: 0;
     }
 
-    /* iPhone Background */
-    .iphone-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    /* iPad Background */
-    .ipad-card {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-    /* MacBook Background */
-    .macbook-card {
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    }
+    .iphone-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .ipad-card { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .macbook-card { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
 
-    /* Featured Products Section */
+    /* Featured Products */
     .featured-section {
       background: #f5f5f7;
       padding: 80px 40px;
@@ -236,7 +227,6 @@ try {
       color: #6e6e73;
     }
 
-    /* Product Grid */
     .product-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -273,15 +263,9 @@ try {
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
-    .product-card .badge.new {
-      color: #bf4800;
-    }
-    .product-card .badge.refurbished {
-      color: #28a745;
-    }
-    .product-card .badge.pre-owned {
-      color: #ffc107;
-    }
+    .product-card .badge.new { color: #bf4800; }
+    .product-card .badge.refurbished { color: #28a745; }
+    .product-card .badge.pre-owned { color: #ffc107; }
     .product-card h3 {
       font-size: 1.6em;
       font-weight: 700;
@@ -321,7 +305,7 @@ try {
       background: #0077ed;
     }
 
-    /* Modal Styling */
+    /* FIXED: Modal Styling */
     .modal-content {
       border-radius: 18px;
       border: none;
@@ -332,6 +316,8 @@ try {
     }
     .modal-body {
       padding: 30px;
+      max-height: 70vh;
+      overflow-y: auto;
     }
     .form-control {
       border-radius: 10px;
@@ -343,6 +329,12 @@ try {
       border-color: #0071e3;
       box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
     }
+    
+    /* FIXED: Hide validation text to reduce modal height */
+    .form-control + small.text-muted {
+      display: none;
+    }
+    
     .btn-primary {
       background: #0071e3;
       border: none;
@@ -368,7 +360,6 @@ try {
       background: transparent;
     }
 
-    /* Responsive */
     @media (max-width: 992px) {
       .category-grid {
         grid-template-columns: 1fr;
@@ -384,26 +375,23 @@ try {
   <!-- Navigation Bar -->
 <header class="navbar navbar-expand-lg navbar-dark bg-dark px-4 py-2">
   <div class="container-fluid d-flex align-items-center justify-content-between">
-    <!-- Logo -->
     <div class="d-flex align-items-center">
       <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.09l-.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z'/%3E%3C/svg%3E" alt="Apple" width="24" height="24" class="me-2">
        <span class="text-white">R&M Apple Gadgets</span>
     </div>
 
-    <!-- Navigation Links -->
     <nav>
       <ul class="navbar-nav d-flex flex-row gap-3 mb-0">
-        <li class="nav-item"><a class="nav-link text-white" href="#" onclick="handleNavClick(event, 'iphone.php')">iPhone</a></li>
-        <li class="nav-item"><a class="nav-link text-white active" href="#" onclick="handleNavClick(event, 'ipad.php')">iPad</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="#" onclick="handleNavClick(event, 'macbook.php')">MacBook</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="#" onclick="handleNavClick(event, 'support.php')">Support</a></li>
+        <li class="nav-item"><a class="nav-link" href="pages/iphone.php">iPhone</a></li>
+        <li class="nav-item"><a class="nav-link" href="pages/ipad.php">iPad</a></li>
+        <li class="nav-item"><a class="nav-link" href="pages/macbook.php">MacBook</a></li>
+        <li class="nav-item"><a class="nav-link" href="pages/support.php">Support</a></li>
       </ul>
     </nav>
 
-    <!-- Icons + Username -->
     <div class="d-flex align-items-center gap-3">
       <span class="fs-5">🔍</span>
-      <a href="#" onclick="handleNavClick(event, 'cart.php')" style="text-decoration: none; font-size: 1.1em;">🛒</a>
+      <a href="#" onclick="handleNavClick(event, 'pages/cart.php')" style="text-decoration: none; font-size: 1.1em;">🛒</a>
 
       <?php if (isset($_SESSION['username'])): ?>
       <div class="dropdown d-inline-block ms-2">
@@ -412,13 +400,13 @@ try {
         </button>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
           <li>
-            <a class="dropdown-item" href="customerdash.php">
+            <a class="dropdown-item" href="pages/customerdash.php">
               <i class="fas fa-tachometer-alt"></i> My Dashboard
             </a>
           </li>
           <li><hr class="dropdown-divider"></li>
           <li>
-            <a class="dropdown-item text-danger" href="logout.php">
+            <a class="dropdown-item text-danger" href="backend/auth/logout.php">
               <i class="fas fa-sign-out-alt"></i> Logout
             </a>
           </li>
@@ -442,9 +430,8 @@ try {
   <!-- Category Showcase -->
   <section class="category-showcase" id="categories">
     <div class="category-grid">
-      <!-- iPhone Card -->
       <div class="category-card iphone-card" onclick="handleCategoryClick('iphone')">
-        <img src="images/iphone17max.png" alt="iPhone" class="category-card-img">
+        <img src="assets/images/iphone17max.png" alt="iPhone" class="category-card-img">
         <div class="content">
           <h2>iPhone</h2>
           <p>Powerful. Beautiful. Durable.</p>
@@ -455,9 +442,8 @@ try {
         </div>
       </div>
 
-      <!-- iPad Card -->
       <div class="category-card ipad-card" onclick="handleCategoryClick('ipad')">
-        <img src="images/ipadair.png" alt="iPad" class="category-card-img">
+        <img src="assets/images/ipadair.png" alt="iPad" class="category-card-img">
         <div class="content">
           <h2>iPad</h2>
           <p>Lovable. Drawable. Magical.</p>
@@ -468,9 +454,8 @@ try {
         </div>
       </div>
 
-      <!-- MacBook Card -->
       <div class="category-card macbook-card" onclick="handleCategoryClick('macbook')">
-        <img src="images/macbookm3.png" alt="MacBook" class="category-card-img">
+        <img src="assets/images/macbookm3.png" alt="MacBook" class="category-card-img">
         <div class="content">
           <h2>MacBook</h2>
           <p>Supercharged by M-series.</p>
@@ -507,7 +492,7 @@ try {
                 }
               ?>
               <span class="badge <?= $badgeClass ?>"><?= $badgeText ?></span>
-              <img src="<?= htmlspecialchars($product['image_url'] ?? 'images/placeholder.png') ?>" 
+              <img src="<?= htmlspecialchars($product['image_url'] ?? 'assets/images/placeholder.png') ?>" 
                    alt="<?= htmlspecialchars($product['name']) ?>"
                    onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22280%22 height=%22280%22%3E%3Crect fill=%22%23f5f5f7%22 width=%22280%22 height=%22280%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2386868b%22 font-size=%2260%22%3E📱%3C/text%3E%3C/svg%3E'">
               <h3><?= htmlspecialchars($product['name']) ?></h3>
@@ -530,7 +515,7 @@ try {
     </div>
   </section>
 
-  <!-- Login/Register Modal -->
+  <!-- FIXED: Login/Register Modal -->
   <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -551,9 +536,8 @@ try {
           <div class="tab-content" id="authTabsContent">
             <!-- Login Form -->
             <div class="tab-pane fade show active" id="login" role="tabpanel">
-              <form action="login.php" method="POST">
+              <form action="backend/auth/login.php" method="POST">
 
-                <!-- ERROR MESSAGE HERE -->
                 <?php if (isset($_GET['error']) && $_GET['error'] == 'invalid_credentials'): ?>
                   <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <strong>Login Failed!</strong> Invalid username or password.
@@ -575,7 +559,7 @@ try {
 
             <!-- Register Form -->
             <div class="tab-pane fade" id="register" role="tabpanel">
-              <form action="register.php" method="POST" id="registerForm">
+              <form action="backend/auth/register.php" method="POST" id="registerForm">
                 <div class="mb-3">
                   <label for="registerFullName" class="form-label">Full Name</label>
                   <input type="text" class="form-control" id="registerFullName" name="full_name" required>
@@ -583,22 +567,18 @@ try {
                 <div class="mb-3">
                   <label for="registerUsername" class="form-label">Username</label>
                   <input type="text" class="form-control" id="registerUsername" name="username" required minlength="3">
-                  <small class="text-muted">At least 3 characters</small>
                 </div>
                 <div class="mb-3">
                   <label for="registerEmail" class="form-label">Email</label>
-                  <input type="email" class="form-control" id="registerEmail" name="email" required pattern=".*@.*">
-                  <small class="text-muted">Must contain @ symbol</small>
+                  <input type="email" class="form-control" id="registerEmail" name="email" required>
                 </div>
                 <div class="mb-3">
                   <label for="registerPhone" class="form-label">Phone Number</label>
                   <input type="tel" class="form-control" id="registerPhone" name="phone" required pattern="[0-9]{10,11}">
-                  <small class="text-muted">10-11 digits</small>
                 </div>
                 <div class="mb-3">
                   <label for="registerPassword" class="form-label">Password</label>
-                  <input type="password" class="form-control" id="registerPassword" name="password" required minlength="8" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&]).{8,}">
-                  <small class="text-muted">Min 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character (@$!%*?&)</small>
+                  <input type="password" class="form-control" id="registerPassword" name="password" required minlength="8">
                 </div>
                 <div class="mb-3">
                   <label for="registerConfirmPassword" class="form-label">Confirm Password</label>
@@ -618,10 +598,8 @@ try {
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
-    // Check if user is logged in
     const isLoggedIn = <?= isset($_SESSION['username']) ? 'true' : 'false' ?>;
 
-    // Handle navigation clicks
     function handleNavClick(event, page) {
       event.preventDefault();
       if (!isLoggedIn) {
@@ -632,29 +610,26 @@ try {
       }
     }
 
-    // Handle category clicks
     function handleCategoryClick(category) {
       if (!isLoggedIn) {
         const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
         loginModal.show();
       } else {
-        // Redirect to category page
-        window.location.href = `${category}.php`;
+        window.location.href = `pages/${category}.php`;
       }
     }
 
-    // Handle product clicks
     function handleProductClick(event, productId) {
       event.preventDefault();
       if (!isLoggedIn) {
         const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
         loginModal.show();
       } else {
-        window.location.href = `product-details.php?id=${productId}`;
+        window.location.href = `pages/product-details.php?id=${productId}`;
       }
     }
 
-    // Password validation for registration
+    // FIXED: Simplified password validation
     const registerForm = document.getElementById('registerForm');
     const password = document.getElementById('registerPassword');
     const confirmPassword = document.getElementById('registerConfirmPassword');
@@ -663,7 +638,6 @@ try {
     registerForm.addEventListener('submit', function(e) {
       passwordError.style.display = 'none';
       
-      // Check if passwords match
       if (password.value !== confirmPassword.value) {
         e.preventDefault();
         passwordError.textContent = 'Passwords do not match!';
@@ -671,26 +645,14 @@ try {
         return false;
       }
 
-      // Validate password requirements
-      const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&]).{8,}$/;
-      if (!passwordRegex.test(password.value)) {
+      if (password.value.length < 8) {
         e.preventDefault();
-        passwordError.textContent = 'Password must contain at least 8 characters, 1 uppercase, 1 lowercase, 1 number, and 1 special character (@$!%*?&)';
-        passwordError.style.display = 'block';
-        return false;
-      }
-
-      // Validate email contains @
-      const email = document.getElementById('registerEmail').value;
-      if (!email.includes('@')) {
-        e.preventDefault();
-        passwordError.textContent = 'Email must contain @ symbol';
+        passwordError.textContent = 'Password must be at least 8 characters';
         passwordError.style.display = 'block';
         return false;
       }
     });
 
-    // Real-time password match indicator
     confirmPassword.addEventListener('input', function() {
       if (password.value !== confirmPassword.value && confirmPassword.value !== '') {
         confirmPassword.style.borderColor = '#dc3545';
@@ -699,20 +661,12 @@ try {
       }
     });
 
-    // Auto-open login modal if there's an error
     window.addEventListener('DOMContentLoaded', function() {
       const urlParams = new URLSearchParams(window.location.search);
       
-      if (urlParams.get('error') === 'invalid_credentials') {
-        const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
-        loginModal.show();
-      }
-      
-      if (urlParams.get('registration') === 'success') {
+      if (urlParams.get('error') === 'invalid_credentials' || urlParams.get('registration') === 'success') {
         const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
         loginModal.show();
       }
     });
   </script>
-</body>
-</html>

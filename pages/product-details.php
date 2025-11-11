@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'db_connect.php';
+require_once __DIR__ . '/../backend/config/db_connect.php';
 $category = $_GET['category'] ?? 'iPhone';
 $categoryPage = $_GET['categoryPage'] ?? 'iphone.php';
 
@@ -274,14 +274,14 @@ function renderStars($rating) {
 <!-- Navigation Bar -->
 <header class="navbar navbar-expand-lg navbar-dark navbar-custom">
     <div class="container-fluid">
-        <a class="navbar-brand d-flex align-items-center" href="index.php">
+        <a class="navbar-brand d-flex align-items-center" href="../index.php">
             <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.09l-.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z'/%3E%3C/svg%3E" width="24" height="24" class="me-2">
             <span class="text-white fw-bold">R&M Apple Gadgets</span>
         </a>
         
         <nav class="d-none d-lg-block">
             <ul class="navbar-nav d-flex flex-row gap-3">
-                <li class="nav-item"><a class="nav-link text-white" href="index.php">Home</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="../index.php">Home</a></li>
                 <li class="nav-item"><a class="nav-link text-white active" href="iphone.php">iPhone</a></li>
                 <li class="nav-item"><a class="nav-link text-white" href="ipad.php">iPad</a></li>
                 <li class="nav-item"><a class="nav-link text-white" href="macbook.php">MacBook</a></li>
@@ -301,11 +301,11 @@ function renderStars($rating) {
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><a class="dropdown-item" href="customerdash.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                        <li><a class="dropdown-item text-danger" href="../backend/auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                     </ul>
                 </div>
             <?php else: ?>
-                <a href="index.php" class="btn btn-outline-light btn-sm">Login</a>
+                <a href="../index.php" class="btn btn-outline-light btn-sm">Login</a>
             <?php endif; ?>
         </div>
     </div>
@@ -313,14 +313,14 @@ function renderStars($rating) {
 
 <div class="container product-container">
     <nav class="breadcrumb mb-4">
-        <a href="index.php">Home</a> / 
+        <a href="../index.php">Home</a> / 
         <a href="<?= htmlspecialchars($categoryPage) ?>"><?= htmlspecialchars($category) ?></a> / 
         <span><?= htmlspecialchars($product['name'] ?? 'Product') ?></span>
     </nav>
 
     <div class="row g-5">
         <div class="col-md-6">
-            <img src="<?= htmlspecialchars($product['image_url'] ?? 'images/placeholder.png') ?>" 
+            <img src="../<?= htmlspecialchars($product['image_url'] ?? 'images/placeholder.png') ?>" 
                  alt="<?= htmlspecialchars($product['name'] ?? 'Product') ?>" 
                  class="product-image-large"
                  onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22600%22%3E%3Crect fill=%22%23f5f5f7%22 width=%22600%22 height=%22600%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2386868b%22 font-size=%22120%22%3E📱%3C/text%3E%3C/svg%3E'">
@@ -605,7 +605,7 @@ async function addToCart() {
     }
 
     try {
-        const response = await fetch('add_to_cart.php', {
+        const response = await fetch('../backend/api/add_to_cart.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

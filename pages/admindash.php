@@ -1,7 +1,7 @@
 <?php 
 // Include authentication check
-include 'auth_check.php'; 
-require_once 'db_connect.php';
+include __DIR__ . '/../backend/auth/auth_check.php';
+require_once __DIR__ . '/../backend/config/db_connect.php';
 
 try {
     // Fetch total users
@@ -191,16 +191,32 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
       gap: 15px;
     }
 
-    .user-avatar {
-      width: 45px;
-      height: 45px;
+    .admin-avatar {
+      width: 120px;
+      height: 120px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin: 0 auto 20px;
+      overflow: hidden; 
+      border: 3px solid #000000ff;
+      background: linear-gradient(135deg, #3c3c3dff 0%, #616161ff 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #fff;
-      font-weight: 600;
+      color: white;
+      font-weight: 700;
+      font-size: 1.8em;
+      text-transform: uppercase;
+    }  
+    .admin-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transform: scale(1.05);
+      transform-origin: center;
+      display: block;
+    }
+    .admin-avatar::before {
+      content: attr(data-initials);
     }
 
     /* Stats Cards */
@@ -652,7 +668,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <span class="nav-icon">👥</span>
         <span>Customers</span>
       </a>
-      <a href="logout.php" class="nav-item" style="color: #ff3b30;">
+      <a href="../backend/auth/logout.php" class="nav-item" style="color: #ff3b30;">
         <span class="nav-icon">🚪</span>
         <span>Logout</span>
       </a>
@@ -666,10 +682,12 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
       <h1 id="page-title">Dashboard</h1>
       <div class="user-info">
         <div>
-          <div style="font-weight: 600;">Admin User</div>
+          <div style="font-weight: 600;">Admin-Rhudsel</div>
           <div style="font-size: 0.85em; color: #86868b;">admin@rmgadgets.com</div>
         </div>
-        <div class="user-avatar">RM</div>
+        <div class="admin-avatar">
+          <img src="../assets/images/RJUY.png">
+        </div>
       </div>
     </div>
 
@@ -755,7 +773,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
                   </td>
                   <td><?= date('M j, Y', strtotime($order['order_date'])) ?></td>
                   <td>
-                    <button class="action-btn edit-btn" onclick="showSection('orders'); setTimeout(() => viewOrderDetails(<?= $order['order_id'] ?>), 100)">View</button>
+                    <button class="action-btn edit-btn" onclick="viewOrderDetails(<?= $order['order_id'] ?>)">View</button>
                   </td>
                 </tr>
               <?php endforeach; ?>
@@ -1039,7 +1057,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     // Fetch all orders
     async function fetchOrders(search = '', status = '') {
       try {
-        const response = await fetch(`order_api.php?action=getAll&search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}`);
+        const response = await fetch(`../backend/api/order_api.php?action=getAll&search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}`);
         const result = await response.json();
         
         if (result.success) {
@@ -1096,7 +1114,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
       currentOrderId = orderId;
       
       try {
-        const response = await fetch(`order_api.php?action=getDetails&order_id=${orderId}`);
+        const response = await fetch(`../backend/api/order_api.php?action=getDetails&order_id=${orderId}`);
         const result = await response.json();
         
         if (result.success) {
@@ -1139,7 +1157,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
       const itemsContainer = document.getElementById('modal-order-items');
       itemsContainer.innerHTML = items.map(item => `
         <div class="order-item-row">
-          <img src="${item.image_url || 'images/placeholder.png'}" alt="${item.name}" class="order-item-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22%3E%3Crect fill=%22%23f5f5f7%22 width=%2260%22 height=%2260%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2386868b%22 font-size=%2224%22%3E📱%3C/text%3E%3C/svg%3E'">
+          <img src="../${item.image_url || 'images/placeholder.png'}" alt="${item.name}" class="order-item-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2260%22 height=%2260%22%3E%3Crect fill=%22%23f5f5f7%22 width=%2260%22 height=%2260%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2386868b%22 font-size=%2224%22%3E📱%3C/text%3E%3C/svg%3E'">
           <div class="order-item-details">
             <div class="order-item-name">${item.name}</div>
             <div class="order-item-specs">
@@ -1164,7 +1182,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
       if (!confirm(`Update order status to "${newStatus}"?`)) return;
       
       try {
-        const response = await fetch('order_api.php?action=updateStatus', {
+        const response = await fetch('../backend/api/order_api.php?action=updateStatus', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1195,7 +1213,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
       if (!confirm('Are you sure you want to delete this order? This action cannot be undone.')) return;
       
       try {
-        const response = await fetch('order_api.php?action=delete', {
+        const response = await fetch('../backend/api/order_api.php?action=delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ order_id: currentOrderId })
@@ -1445,7 +1463,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     // API Functions
     async function fetchProducts(search = '') {
       try {
-        const response = await fetch(`product_api.php?action=getAll&search=${encodeURIComponent(search)}`);
+        const response = await fetch(`../backend/api/product_api.php?action=getAll&search=${encodeURIComponent(search)}`);
         const result = await response.json();
         
         if (result.success) {
@@ -1466,7 +1484,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
       const action = currentEditId ? 'update' : 'add';
       
       try {
-        const response = await fetch(`product_api.php?action=${action}`, {
+        const response = await fetch(`../backend/api/product_api.php?action=${action}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -1491,7 +1509,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
       if (!confirm('Are you sure you want to delete this product?')) return;
       
       try {
-        const response = await fetch('product_api.php?action=delete', {
+        const response = await fetch('../backend/api/product_api.php?action=delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id })
@@ -1513,7 +1531,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     async function updateStock(id, quantity) {
       try {
-        const response = await fetch('product_api.php?action=updateStock', {
+        const response = await fetch('../backend/api/product_api.php?action=updateStock', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id, quantity })
@@ -1551,7 +1569,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         return `
           <tr>
-            <td><img src="${product.image_url || 'images/placeholder.png'}" alt="${product.name}" class="product-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22%3E%3Crect fill=%22%23f5f5f7%22 width=%2250%22 height=%2250%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2386868b%22 font-size=%2220%22%3E📱%3C/text%3E%3C/svg%3E'"></td>
+            <td><img src="../${product.image_url}" alt="${product.name}" class="product-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2250%22 height=%2250%22%3E%3Crect fill=%22%23f5f5f7%22 width=%2250%22 height=%2250%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2386868b%22 font-size=%2220%22%3E📱%3C/text%3E%3C/svg%3E'"></td>
             <td>
               <strong>${product.name}</strong><br>
               <small style="color: #86868b;">${formatCondition(product.condition_type)}</small>
@@ -1578,7 +1596,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     async function toggleFeatured(id, isFeatured) {
       try {
-        const response = await fetch('product_api.php?action=toggleFeatured', {
+        const response = await fetch('../backend/api/product_api.php?action=toggleFeatured', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id, is_featured: isFeatured })
@@ -1910,7 +1928,7 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     // Fetch all customers
     async function fetchCustomers(search = '') {
       try {
-        const response = await fetch(`customer_api.php?action=getAll&search=${encodeURIComponent(search)}`);
+        const response = await fetch(`../backend/api/customer_api.php?action=getAll&search=${encodeURIComponent(search)}`);
         const result = await response.json();
         
         if (result.success) {
@@ -1974,22 +1992,3 @@ $recentOrders = $stmt->fetchAll(PDO::FETCH_ASSOC);
   </script>
 </body>
 </html>
-            <label class="form-label">Contact Email</label>
-            <input type="email" class="form-input" value="info@rmgadgets.com">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Contact Phone</label>
-            <input type="tel" class="form-input" value="+63 912 345 6789">
-          </div>
-          <div class="form-group full-width">
-            <label class="form-label">Store Address</label>
-            <textarea class="form-textarea">123 Apple Street, Quezon City, Metro Manila, Philippines</textarea>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Currency</label>
-            <select class="form-select">
-              <option value="PHP">Philippine Peso (₱)</option>
-              <option value="USD">US Dollar ($)</option>
-            </select>
-          </div>
-          <div class="form-group">

@@ -1,10 +1,10 @@
 <?php
 session_start();
-require_once 'db_connect.php';
+require_once __DIR__ . '/../backend/config/db_connect.php';
 
 // Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: index.php');
+    header('Location: ../../index.php');
     exit;
 }
 
@@ -418,7 +418,7 @@ $total = $subtotal + $shipping;
 
                 <?php foreach ($cart_items as $item): ?>
                     <div class="summary-item">
-                        <img src="<?= htmlspecialchars($item['image_url']) ?>" 
+                        <img src="../<?= htmlspecialchars($item['image_url']) ?>" 
                              alt="<?= htmlspecialchars($item['name']) ?>" 
                              class="item-image">
                         <div class="item-info">
@@ -508,7 +508,7 @@ $total = $subtotal + $shipping;
             errorMessage.style.display = 'none';
 
             try {
-                const response = await fetch('process_order.php', {
+                const response = await fetch('../backend/api/process_order.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)

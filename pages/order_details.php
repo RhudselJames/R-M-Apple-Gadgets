@@ -1,10 +1,10 @@
 <?php
 session_start();
-require_once 'db_connect.php';
+require_once __DIR__ . '/../backend/config/db_connect.php';
 
 // Redirect to login if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: index.php');
+    header('Location: ../../index.php');
     exit;
 }
 
@@ -404,13 +404,13 @@ $shipping = $order['total_amount'] - $subtotal;
 <!-- Navigation Bar -->
 <header class="navbar navbar-expand-lg navbar-dark navbar-custom">
     <div class="container-fluid">
-        <a class="navbar-brand d-flex align-items-center" href="index.php">
+        <a class="navbar-brand d-flex align-items-center" href="../index.php">
             <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.09l-.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z'/%3E%3C/svg%3E" width="24" height="24" class="me-2" alt="Apple">
             <span class="text-white fw-bold">R&M Apple Gadgets</span>
         </a>
         
         <div class="d-flex align-items-center gap-3">
-            <a href="index.php" class="text-white text-decoration-none">
+            <a href="../index.php" class="text-white text-decoration-none">
                 <i class="fas fa-home"></i> Home
             </a>
             <a href="cart.php" class="text-white text-decoration-none">
@@ -423,7 +423,7 @@ $shipping = $order['total_amount'] - $subtotal;
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><a class="dropdown-item" href="customerdash.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item text-danger" href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                    <li><a class="dropdown-item text-danger" href="../backend/auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 </ul>
             </div>
         </div>
@@ -465,7 +465,7 @@ $shipping = $order['total_amount'] - $subtotal;
                 
                 <?php foreach ($order_items as $item): ?>
                     <div class="order-item">
-                        <img src="<?= htmlspecialchars($item['image_url'] ?? 'images/placeholder.png'); ?>" 
+                        <img src="../<?= htmlspecialchars($item['image_url'] ?? 'images/placeholder.png'); ?>" 
                              alt="<?= htmlspecialchars($item['name']); ?>">
                              <?php $reviewCheck = $conn->prepare("SELECT COUNT(*) FROM reviews WHERE product_id = ? AND user_id = ?");
                                 $reviewCheck->execute([$item['product_id'], $user_id]);
@@ -552,7 +552,7 @@ $shipping = $order['total_amount'] - $subtotal;
                     <button class="btn btn-primary w-100" onclick="window.print()">
                         <i class="fas fa-print"></i> Print Order
                     </button>
-                    <a href="index.php" class="btn btn-outline w-100 text-center text-decoration-none">
+                    <a href="../index.php" class="btn btn-outline w-100 text-center text-decoration-none">
                         <i class="fas fa-store"></i> Continue Shopping
                     </a>
                 </div>

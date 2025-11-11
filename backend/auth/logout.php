@@ -1,4 +1,3 @@
-
 <?php
 session_start();
 
@@ -17,7 +16,7 @@ if (ini_get("session.use_cookies")) {
 // Destroy the session
 session_destroy();
 
-// Redirect to homepage
-header("Location: index.php?logout=success");
+// UPDATED: Redirect to homepage from backend/auth/
+header("Location: ../../index.php?logout=success");
 exit();
 ?>

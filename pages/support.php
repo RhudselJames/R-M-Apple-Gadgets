@@ -87,7 +87,8 @@ session_start();
     .contact-icon {
       width: 80px;
       height: 80px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: 3px solid #000000ff;
+      background: linear-gradient(135deg, #3c3c3dff 0%, #616161ff 100%);
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -143,131 +144,133 @@ session_start();
     }
 
     .team-avatar {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        margin: 0 auto 20px;
-        overflow: hidden; /* keeps image inside the circle */
-        border: 3px solid #764ba2;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 700;
-        font-size: 1.8em;
-        text-transform: uppercase;
-    }
-
-        /* When an image is present, it will fully cover the gradient */
-        .team-avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-    }
-
-        /* Optional: show initials if no image is used */
-        .team-avatar::before {
-        content: attr(data-initials);
-    }
-
-    .team-member h4 {
-      font-size: 1.3em;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: #1d1d1f;
-    }
-
-    .team-member p {
-      color: #6e6e73;
-      font-size: 0.95em;
-      margin-bottom: 5px;
-    }
-
-    .team-member a {
-      color: #0071e3;
-      text-decoration: none;
-      font-size: 0.9em;
-    }
-
-    .disclaimer-section {
-      background: #fff3cd;
-      border: 2px solid #ffc107;
-      border-radius: 18px;
-      padding: 40px;
-      margin-bottom: 60px;
-    }
-
-    .disclaimer-section h3 {
-      color: #856404;
-      font-size: 1.5em;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      overflow: hidden; 
+      border: 3px solid #000000ff;
+      background: linear-gradient(135deg, #3c3c3dff 0%, #616161ff 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
       font-weight: 700;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      font-size: 1.8em;
+      text-transform: uppercase;
+  }
+
+    
+    .team-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transform: scale(1.05);
+      transform-origin: center;
+      display: block;
+  }
+
+    
+    .team-avatar::before {
+      content: attr(data-initials);
+  }
+
+  .team-member h4 {
+    font-size: 1.3em;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #1d1d1f;
+  }
+
+  .team-member p {
+    color: #6e6e73;
+    font-size: 0.95em;
+    margin-bottom: 5px;
+  }
+
+  .team-member a {
+    color: #0071e3;
+    text-decoration: none;
+    font-size: 0.9em;
+  }
+
+  .disclaimer-section {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 18px;
+    padding: 40px;
+    margin-bottom: 60px;
+  }
+
+  .disclaimer-section h3 {
+    color: #856404;
+    font-size: 1.5em;
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .disclaimer-section p {
+    color: #856404;
+    font-size: 1em;
+    line-height: 1.8;
+    margin-bottom: 15px;
+  }
+
+  .disclaimer-section ul {
+    color: #856404;
+    margin-left: 20px;
+    line-height: 1.8;
+  }
+
+  .faq-section {
+    background: white;
+    padding: 60px 40px;
+    border-radius: 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  .faq-item {
+    border-bottom: 1px solid #e5e5e7;
+    padding: 25px 0;
+  }
+
+  .faq-item:last-child {
+    border-bottom: none;
+  }
+
+  .faq-question {
+    font-size: 1.2em;
+    font-weight: 600;
+    color: #1d1d1f;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .faq-answer {
+    color: #6e6e73;
+    font-size: 1em;
+    line-height: 1.7;
+  }
+
+  @media (max-width: 768px) {
+    .support-hero h1 {
+      font-size: 2.5em;
     }
 
-    .disclaimer-section p {
-      color: #856404;
-      font-size: 1em;
-      line-height: 1.8;
-      margin-bottom: 15px;
+    .section-title {
+      font-size: 1.8em;
     }
 
-    .disclaimer-section ul {
-      color: #856404;
-      margin-left: 20px;
-      line-height: 1.8;
+    .contact-grid,
+    .team-grid {
+      grid-template-columns: 1fr;
     }
-
-    .faq-section {
-      background: white;
-      padding: 60px 40px;
-      border-radius: 18px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
-    .faq-item {
-      border-bottom: 1px solid #e5e5e7;
-      padding: 25px 0;
-    }
-
-    .faq-item:last-child {
-      border-bottom: none;
-    }
-
-    .faq-question {
-      font-size: 1.2em;
-      font-weight: 600;
-      color: #1d1d1f;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .faq-answer {
-      color: #6e6e73;
-      font-size: 1em;
-      line-height: 1.7;
-    }
-
-    @media (max-width: 768px) {
-      .support-hero h1 {
-        font-size: 2.5em;
-      }
-
-      .section-title {
-        font-size: 1.8em;
-      }
-
-      .contact-grid,
-      .team-grid {
-        grid-template-columns: 1fr;
-      }
-    }
+  }
   </style>
 </head>
 <body>
@@ -275,14 +278,14 @@ session_start();
 <!-- Navigation Bar -->
 <header class="navbar navbar-expand-lg navbar-dark navbar-custom">
   <div class="container-fluid">
-    <a class="navbar-brand d-flex align-items-center" href="index.php">
+    <a class="navbar-brand d-flex align-items-center" href="../index.php">
       <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.09l-.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z'/%3E%3C/svg%3E" width="24" height="24" class="me-2">
       <span class="text-white fw-bold">R&M Apple Gadgets</span>
     </a>
     
     <nav class="d-none d-lg-block">
       <ul class="navbar-nav d-flex flex-row gap-3">
-        <li class="nav-item"><a class="nav-link text-white" href="index.php">Home</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="../index.php">Home</a></li>
         <li class="nav-item"><a class="nav-link text-white" href="iphone.php">iPhone</a></li>
         <li class="nav-item"><a class="nav-link text-white" href="ipad.php">iPad</a></li>
         <li class="nav-item"><a class="nav-link text-white" href="macbook.php">MacBook</a></li>
@@ -302,11 +305,11 @@ session_start();
           <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item" href="customerdash.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item text-danger" href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            <li><a class="dropdown-item text-danger" href="../backend/auth/logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
           </ul>
         </div>
       <?php else: ?>
-        <a href="index.php" class="btn btn-outline-light btn-sm">Login</a>
+        <a href="../index.php" class="btn btn-outline-light btn-sm">Login</a>
       <?php endif; ?>
     </div>
   </div>
@@ -360,7 +363,7 @@ session_start();
     <div class="team-grid">
       <div class="team-member">
         <div class="team-avatar">
-            <img src="images/RhudselJames.jpg">
+            <img src="../assets/images/RJUY.png">
         </div>
         <h4>Rhudsel James M. Uy</h4>
         <p>Co-Founder & CEO</p>
@@ -369,7 +372,7 @@ session_start();
 
       <div class="team-member">
         <div class="team-avatar">
-            <img src="images/MarManaay.jpg">
+            <img src="../assets/images/MarManaay.jpg">
         </div>
         <h4>Mar Christian M. Mana-ay</h4>
         <p>CTO</p>

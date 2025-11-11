@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'db_connect.php'; // make sure this file connects using PDO or mysqli
+include __DIR__ . '/../backend/config/db_connect.php'; // make sure this file connects using PDO or mysqli
 
 if (!isset($_GET['id'])) {
     // Redirect if no product ID is provided
@@ -93,7 +93,7 @@ if (!$product) {
 <div class="container product-container">
     <div class="row">
         <div class="col-md-5 text-center">
-            <img src="<?= htmlspecialchars($product['image_url']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" class="product-img">
+            <img src="../<?= htmlspecialchars($product['image_url']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" class="product-img">
         </div>
         <div class="col-md-7">
             <h1 class="product-name"><?= htmlspecialchars($product['name']) ?></h1>
@@ -113,7 +113,7 @@ if (!$product) {
 
             <div class="mt-4">
                 <button class="btn-buy me-2">Buy Now</button>
-                <a href="index.php" class="btn-back">← Back to Products</a>
+                <a href="../index.php" class="btn-back">← Back to Products</a>
             </div>
         </div>
     </div>

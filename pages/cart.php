@@ -1,10 +1,10 @@
 <?php
 session_start();
-require_once 'db_connect.php';
+require_once __DIR__ . '/../backend/config/db_connect.php';
 
 // Redirect to login if not logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: index.php');
+    header('Location: ../../index.php');
     exit;
 }
 
@@ -49,7 +49,7 @@ $total = $subtotal + $shipping;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shopping Cart - R&M Apple Gadgets</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
     <style>
         body {
             background: #f5f5f7;
@@ -298,7 +298,7 @@ $total = $subtotal + $shipping;
         </div>
         <nav>
             <ul>
-                <li><a href="index.php">Home</a></li>
+                <li><a href="../index.php">Home</a></li>
                 <li><a href="iphone.php">iPhone</a></li>
                 <li><a href="ipad.php">iPad</a></li>
                 <li><a href="macbook.php">MacBook</a></li>
@@ -328,7 +328,7 @@ $total = $subtotal + $shipping;
                 </li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
-                    <a class="dropdown-item text-danger" href="logout.php">
+                    <a class="dropdown-item text-danger" href="../backend/auth/logout.php">
                     <i class="fas fa-sign-out-alt"></i> Logout
                     </a>
                 </li>
@@ -346,7 +346,7 @@ $total = $subtotal + $shipping;
             <div class="empty-cart">
                 <h2>Your cart is empty</h2>
                 <p>Start shopping to add items to your cart!</p>
-                <a href="index.php" class="continue-shopping">Continue Shopping</a>
+                <a href="../index.php" class="continue-shopping">Continue Shopping</a>
             </div>
         <?php else: ?>
             <!-- Cart Content -->
@@ -355,7 +355,7 @@ $total = $subtotal + $shipping;
                 <div class="cart-items">
                     <?php foreach ($cart_items as $item): ?>
                         <div class="cart-item" data-cart-id="<?= $item['cart_id'] ?>" data-price="<?= $item['price'] ?>">
-                            <img src="<?= htmlspecialchars($item['image_url']) ?>" alt="<?= htmlspecialchars($item['name']) ?>" class="item-image">
+                            <img src="../<?= htmlspecialchars($item['image_url']) ?>" alt="<?= htmlspecialchars($item['name']) ?>" class="item-image">
                             
                             <div class="item-details">
                                 <h3>
@@ -408,7 +408,7 @@ $total = $subtotal + $shipping;
                     </div>
 
                     <button class="checkout-btn" onclick="proceedToCheckout()">Proceed to Checkout</button>
-                    <a href="index.php" style="display: block; text-align: center; margin-top: 15px; text-decoration: none; color: #0071e3; font-weight: 500;">Continue Shopping</a>
+                    <a href="../index.php" style="display: block; text-align: center; margin-top: 15px; text-decoration: none; color: #0071e3; font-weight: 500;">Continue Shopping</a>
                 </div>
             </div>
         <?php endif; ?>
@@ -425,7 +425,7 @@ $total = $subtotal + $shipping;
             if (newQty < 1) return;
 
             try {
-                const response = await fetch('update_cart.php', {
+                const response = await fetch('../backend/api/update_cart.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ cart_id: cartId, quantity: newQty })
@@ -457,7 +457,7 @@ $total = $subtotal + $shipping;
             if (!confirm('Remove this item from cart?')) return;
 
             try {
-                const response = await fetch('remove_from_cart.php', {
+                const response = await fetch('../backend/api/remove_from_cart.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ cart_id: cartId })

@@ -1,6 +1,7 @@
 <?php
 session_start();
-include 'db_connect.php'; // Use your existing connection
+// UPDATED: Path to db_connect.php from backend/auth/
+include __DIR__ . '/../config/db_connect.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $input_username = trim($_POST['username']);
@@ -8,7 +9,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     // Validate inputs are not empty
     if (empty($input_username) || empty($input_password)) {
-        header("Location: index.php?error=empty_fields");
+        // UPDATED: Redirect path to index.php from backend/auth/
+        header("Location: ../../index.php?error=empty_fields");
         exit();
     }
     
@@ -33,11 +35,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['username'] = $admin['username'];
             $_SESSION['full_name'] = $admin['username'];
             $_SESSION['user_role'] = 'admin';
-            header("Location: admindash.php");
+            // UPDATED: Redirect path to admindash.php from backend/auth/
+            header("Location: ../../pages/admindash.php");
             exit();
         } else {
             // Wrong admin password
-            header("Location: index.php?error=invalid_credentials");
+            header("Location: ../../index.php?error=invalid_credentials");
             exit();
         }
     }
@@ -64,22 +67,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['full_name'] = $user['full_name'];
             $_SESSION['email'] = $user['email'];
             $_SESSION['user_role'] = 'customer';
-            header("Location: index.php");
+            // UPDATED: Redirect path to index.php from backend/auth/
+            header("Location: ../../index.php");
             exit();
         } else {
             // Wrong customer password
-            header("Location: index.php?error=invalid_credentials");
+            header("Location: ../../index.php?error=invalid_credentials");
             exit();
         }
     }
     
     // Neither admin nor user found
-    header("Location: index.php?error=invalid_credentials");
+    header("Location: ../../index.php?error=invalid_credentials");
     exit();
     
 } else {
     // Direct access without POST
-    header("Location: index.php");
+    header("Location: ../../index.php");
     exit();
 }
 ?>

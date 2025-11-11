@@ -1,7 +1,7 @@
 
 <?php
 session_start();
-require_once 'db_connect.php';
+require_once __DIR__ . '/../backend/config/db_connect.php';
 $category = "iPhone"; 
 $categoryPage = "iphone.php"; 
 
@@ -94,7 +94,7 @@ function calculateSavings($price, $originalPrice) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>iPhone - R&M Apple Gadgets</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     /* Product Image Adjustments */
@@ -122,6 +122,13 @@ function calculateSavings($price, $originalPrice) {
       min-height: 500px;
     }
 
+    .product-price {
+      font-size: 1.1em;
+      font-weight: 600;
+      color: #1d1d1f;
+      margin: 15px 0;
+    }
+
     .color-options {
       display: flex;
       gap: 8px;
@@ -143,7 +150,7 @@ function calculateSavings($price, $originalPrice) {
       border: none !important;
       color: #ff3b30 !important;
       font-weight: 700;
-      font-size: 0.6em;
+      font-size: 0.75em;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       box-shadow: none !important;
@@ -190,7 +197,7 @@ function calculateSavings($price, $originalPrice) {
     <!-- Navigation Links -->
     <nav>
       <ul class="navbar-nav d-flex flex-row gap-3 mb-0">
-        <li class="nav-item"><a class="nav-link text-white" href="index.php">Home</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="../index.php">Home</a></li>
         <li class="nav-item"><a class="nav-link text-white active" href="iphone.php">iPhone</a></li>
         <li class="nav-item"><a class="nav-link text-white" href="ipad.php">iPad</a></li>
         <li class="nav-item"><a class="nav-link text-white" href="macbook.php">MacBook</a></li>
@@ -216,7 +223,7 @@ function calculateSavings($price, $originalPrice) {
           </li>
           <li><hr class="dropdown-divider"></li>
           <li>
-            <a class="dropdown-item text-danger" href="logout.php">
+            <a class="dropdown-item text-danger" href="../backend/auth/logout.php">
               <i class="fas fa-sign-out-alt"></i> Logout
             </a>
           </li>
@@ -230,7 +237,7 @@ function calculateSavings($price, $originalPrice) {
   <!-- Hero Slider -->
   <section class="slider">
     <div class="slides">
-      <div class="slide active" style="background-image: url('images/iphone13.png');">
+      <div class="slide active" style="background-image: url('../assets/images/iphone13.png');">
         <div class="content">
           <h1>iPhone 13</h1>
           <p>Powerful performance. Classic design.</p>
@@ -238,7 +245,7 @@ function calculateSavings($price, $originalPrice) {
           <button class="secondary">Buy</button>
         </div>
       </div>
-      <div class="slide" style="background-image: url('images/iphone14.png');">
+      <div class="slide" style="background-image: url('../assets/images/iphone14.png');">
         <div class="content">
           <h1>iPhone 14</h1>
           <p>Big and bigger.</p>
@@ -246,7 +253,7 @@ function calculateSavings($price, $originalPrice) {
           <button class="secondary">Buy</button>
         </div>
       </div>
-      <div class="slide" style="background-image: url('images/Ip15.png');">
+      <div class="slide" style="background-image: url('../assets/images/Ip15.png');">
         <div class="content">
           <h1>iPhone 15</h1>
           <p>Dynamic and durable.</p>
@@ -254,7 +261,7 @@ function calculateSavings($price, $originalPrice) {
           <button class="secondary">Buy</button>
         </div>
       </div>
-      <div class="slide" style="background-image: url('images/ip16.png');">
+      <div class="slide" style="background-image: url('../assets/images/ip16.png');">
         <div class="content">
           <h1>iPhone 16</h1>
           <p>Smarter. Faster. Stronger.</p>
@@ -296,7 +303,7 @@ function calculateSavings($price, $originalPrice) {
           <h3><?= htmlspecialchars($product['name']) ?></h3>
         </div>
         <div class="product-image">
-          <img src="<?= htmlspecialchars($product['image_url']) ?>" 
+          <img src="../<?= htmlspecialchars($product['image_url']) ?>" 
                alt="<?= htmlspecialchars($product['name']) ?>"
                onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22280%22 height=%22280%22%3E%3Crect fill=%22%23f5f5f7%22 width=%22280%22 height=%22280%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2386868b%22 font-size=%2260%22%3E📱%3C/text%3E%3C/svg%3E'">
         </div>
@@ -345,7 +352,7 @@ function calculateSavings($price, $originalPrice) {
           <p class="refurb-subtitle"><?= ucfirst($product['condition_type']) ?></p>
         </div>
         <div class="product-image">
-          <img src="<?= htmlspecialchars($product['image_url']) ?>" 
+          <img src="../<?= htmlspecialchars($product['image_url']) ?>" 
                alt="<?= htmlspecialchars($product['name']) ?>"
                onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22280%22 height=%22280%22%3E%3Crect fill=%22%23f5f5f7%22 width=%22280%22 height=%22280%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%2386868b%22 font-size=%2260%22%3E📱%3C/text%3E%3C/svg%3E'">
         </div>
@@ -375,7 +382,7 @@ function calculateSavings($price, $originalPrice) {
       <?php endif; ?>
     </div>
   </section>
-  <script src="script.js"></script>
+  <script src="../assets/js/script.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>  
 </body>
 </html>

@@ -174,6 +174,37 @@ session_start();
     .team-avatar::before {
       content: attr(data-initials);
   }
+  .team-avatar1 {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    overflow: hidden; 
+    border: 3px solid #000000ff;
+    background: linear-gradient(135deg, #3c3c3dff 0%, #616161ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 1.8em;
+    text-transform: uppercase;
+  }
+
+    
+  .team-avatar1 img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transform: scale(1.2);
+    transform-origin: center;
+    display: block;
+  }
+
+    
+  .team-avatar1::before {
+    content: attr(data-initials);
+  }
 
   .team-member h4 {
     font-size: 1.3em;
@@ -371,8 +402,8 @@ session_start();
       </div>
 
       <div class="team-member">
-        <div class="team-avatar">
-            <img src="../assets/images/MarManaay.jpg">
+        <div class="team-avatar1">
+            <img src="../assets/images/MarManaay.png">
         </div>
         <h4>Mar Christian M. Mana-ay</h4>
         <p>CTO</p>

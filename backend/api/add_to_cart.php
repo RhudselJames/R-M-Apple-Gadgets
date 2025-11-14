@@ -59,18 +59,17 @@ try {
 
         $stmt = $conn->prepare("
             UPDATE cart 
-            SET quantity = ?, updated_at = NOW() 
+            SET quantity = ?, price = ?, updated_at = NOW() 
             WHERE id = ?
         ");
-        $stmt->execute([$new_quantity, $existing['id']]);
+        $stmt->execute([$new_quantity, $product['price'], $existing['id']]);
     } else {
         // Insert new cart item
         $stmt = $conn->prepare("
-            INSERT INTO cart (user_id, product_id, quantity, color, storage, created_at, updated_at) 
-            VALUES (?, ?, ?, ?, ?, NOW(), NOW())
+            INSERT INTO cart (user_id, product_id, quantity, color, storage, price, created_at, updated_at) 
+            VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())
         ");
-        $stmt->execute([$user_id, $product_id, $quantity, $color, $storage]);
-    }
+        $stmt->execute([$user_id, $product_id, $quantity, $color, $storage, $product['price']]);
 
     // Get cart count
     $stmt = $conn->prepare("SELECT SUM(quantity) as total FROM cart WHERE user_id = ?");
@@ -82,7 +81,7 @@ try {
         'message' => 'Product added to cart successfully!',
         'cart_count' => $cart_count
     ]);
-
+    }
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
 }

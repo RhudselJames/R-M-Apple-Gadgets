@@ -12,6 +12,21 @@ $user_id = $_SESSION['user_id'];
 $success_message = '';
 $error_message = '';
 
+function getColorHex($color) {
+    $colorMap = [
+        'deep blue'=> '#1a2e45', 'cosmic orange' => '#ff8c30', 'silver' => '#f5f5f7',
+        'desert titanium' => '#d6c6b3', 'natural titanium' => '#c8c0b3',
+        'white titanium' => '#f5f5f0', 'black titanium' => '#1d1d1f',
+        'blue titanium' => '#4b5b78', 'blue' => '#99c7f2', 'pink' => '#ffd6e8',
+        'teal' => '#bfe7e0', 'yellow' => '#fff4b1', 'midnight' => '#1d1d1f',
+        'starlight' => '#f5e4ca', 'green' => '#c9dcd4', 'purple' => '#dcc5da',
+        'red' => '#f54542', 'white' => '#f5f5f0', 'black' => '#1d1d1f',
+        'sky blue' => '#8ec6f9', 'light gold' => '#e8d9b8', 'cloud white' => '#f5f5f5',
+        'space black' => '#1d1d1f'
+    ];
+    return $colorMap[strtolower(trim($color))] ?? '#ddd';
+}
+
 // Handle profile update
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_profile'])) {
     $full_name = trim($_POST['full_name']);
@@ -66,19 +81,82 @@ $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
 // Fetch cart items with product details
 $cart_stmt = $conn->prepare("
-    SELECT c.id as cart_id, p.name, p.price, p.image_url, c.quantity, c.color, c.storage,
-           (p.price * c.quantity) as subtotal
+    SELECT 
+        c.id as cart_id,
+        c.quantity,
+        c.color,
+        c.storage,
+        c.price as cart_price,
+        p.id as product_id,
+        p.name,
+        p.image_url,
+        p.price as product_base_price,
+        p.condition_type,
+        p.category,
+        p.unified_memory
     FROM cart c
     JOIN products p ON c.product_id = p.id
     WHERE c.user_id = ?
+    ORDER BY c.created_at DESC
 ");
 $cart_stmt->execute([$user_id]);
 $cart_items = $cart_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Calculate cart total
-$cart_total = 0;
+// Build product options map (same logic as cart.php)
+$category_base_names = [];
 foreach ($cart_items as $item) {
-    $cart_total += $item['subtotal'];
+    $product_name = $item['name'];
+    $category = $item['category'];
+    $base_name = preg_replace('/\s*-\s*(128GB|256GB|512GB|1TB|2TB|64GB).*$/i', '', $product_name);
+    $base_name = preg_replace('/\s*\(.*\).*$/i', '', $base_name);
+    $base_name = trim($base_name);
+    if (!isset($category_base_names[$category])) { $category_base_names[$category] = []; }
+    $category_base_names[$category][$base_name] = true;
+}
+
+$product_options = [];
+foreach ($category_base_names as $category => $base_names) {
+    foreach (array_keys($base_names) as $base_name) {
+        $master_product_stmt = $conn->prepare("SELECT color, storage, price FROM products WHERE category = ? AND name = ? AND status = 'active' LIMIT 1");
+        $master_product_stmt->execute([$category, $base_name]);
+        $master_product = $master_product_stmt->fetch(PDO::FETCH_ASSOC);
+        $colors = []; $storages = []; $price_map = [];
+        if ($master_product) {
+            $colors = !empty($master_product['color']) ? explode(',', $master_product['color']) : [];
+            $storages = !empty($master_product['storage']) ? explode(',', $master_product['storage']) : [];
+            $base_price = $master_product['price'];
+            $search_pattern = $base_name . '%';
+            $variants_stmt = $conn->prepare("SELECT color, storage, price FROM products WHERE category = ? AND name LIKE ? AND status = 'active' AND LOCATE(',', color) = 0 AND LOCATE(',', storage) = 0");
+            $variants_stmt->execute([$category, $search_pattern]);
+            $variants = $variants_stmt->fetchAll(PDO::FETCH_ASSOC);
+            if (count($variants) > 0) {
+                foreach ($variants as $variant) { $price_map[trim($variant['storage']) . '_' . trim($variant['color'])] = $variant['price']; }
+            } else {
+                $base_storage_val = 128;
+                if (!empty($storages)) {
+                    preg_match('/(\d+)(GB|TB)/i', trim($storages[0]), $matches);
+                    if ($matches) { $base_storage_val = $matches[1] * (strtoupper($matches[2] ?? 'GB') == 'TB' ? 1024 : 1); }
+                }
+                foreach ($storages as $storage) {
+                    $storage = trim($storage);
+                    preg_match('/(\d+)(GB|TB)/i', $storage, $matches);
+                    $storage_val = isset($matches[1]) ? $matches[1] * (strtoupper(isset($matches[2]) ? $matches[2] : 'GB') == 'TB' ? 1024 : 1) : $base_storage_val;
+                    $stepDifference = ($storage_val - $base_storage_val) / 128;
+                    $newPrice = $base_price + (max(0, $stepDifference) * 5000);
+                    foreach ($colors as $color) { $price_map[trim($storage) . '_' . trim($color)] = $newPrice; }
+                }
+            }
+        }
+        usort($storages, function($a, $b) {
+            preg_match('/(\d+)(GB|TB)/i', trim($a), $matchesA);
+            preg_match('/(\d+)(GB|TB)/i', trim($b), $matchesB);
+            if (empty($matchesA) || empty($matchesB)) return 0;
+            $valA = $matchesA[1] * (strtoupper($matchesA[2] ?? 'GB') == 'TB' ? 1024 : 1);
+            $valB = $matchesB[1] * (strtoupper($matchesB[2] ?? 'GB') == 'TB' ? 1024 : 1);
+            return $valA <=> $valB;
+        });
+        $product_options[$category][$base_name] = ['colors' => array_map('trim', $colors), 'storages' => array_map('trim', $storages), 'price_map' => $price_map];
+    }
 }
 
 // Fetch order history
@@ -104,321 +182,389 @@ $orders = $orders_stmt->fetchAll(PDO::FETCH_ASSOC);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
-            background: #f5f5f7;
-            color: #1d1d1f;
-        }
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; 
+    background: #f5f5f7;
+    color: #1d1d1f;
+}
 
-        /* Navigation */
-        .navbar-custom {
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(20px);
-            padding: 12px 40px;
-        }
-        
-        .dashboard-container {
-            max-width: 1400px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-        
-        .dashboard-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 60px 40px;
-            border-radius: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-        }
-        
-        .dashboard-header h1 {
-            font-size: 2.5em;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-        
-        .dashboard-header p {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-        
-        .dashboard-tabs {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        
-        .nav-tabs {
-            border: none;
-            gap: 10px;
-        }
-        
-        .nav-tabs .nav-link {
-            border: none;
-            color: #6e6e73;
-            font-weight: 500;
-            padding: 12px 24px;
-            border-radius: 10px;
-            transition: all 0.3s;
-        }
-        
-        .nav-tabs .nav-link:hover {
-            background: #f5f5f7;
-            color: #1d1d1f;
-        }
-        
-        .nav-tabs .nav-link.active {
-            background: #0071e3;
-            color: white;
-        }
-        
-        .content-card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-        }
-        
-        .content-card h3 {
-            font-size: 1.5em;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: #1d1d1f;
-        }
-        
-        .form-control, .form-select {
-            border-radius: 10px;
-            border: 1px solid #d2d2d7;
-            padding: 12px 16px;
-            font-size: 0.95em;
-        }
-        
-        .form-control:focus, .form-select:focus {
-            border-color: #0071e3;
-            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
-        }
-        
-        .btn-primary {
-            background: #0071e3;
-            border: none;
-            border-radius: 10px;
-            padding: 12px 28px;
-            font-weight: 500;
-            transition: 0.3s;
-        }
-        
-        .btn-primary:hover {
-            background: #0077ed;
-        }
-        
-        .btn-danger {
-            border-radius: 10px;
-            padding: 8px 16px;
-        }
-        
-        .cart-item {
-            display: flex;
-            gap: 20px;
-            padding: 20px;
-            border: 1px solid #e5e5e7;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            transition: all 0.3s;
-        }
-        
-        .cart-item:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        
-        .cart-item img {
-            width: 100px;
-            height: 100px;
-            object-fit: contain;
-            border-radius: 8px;
-        }
-        
-        .cart-item-details {
-            flex: 1;
-        }
-        
-        .cart-item-details h5 {
-            font-size: 1.1em;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        
-        .cart-item-meta {
-            display: flex;
-            gap: 15px;
-            font-size: 0.9em;
-            color: #6e6e73;
-            margin-bottom: 10px;
-        }
-        
-        .cart-total {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 25px;
-            border-radius: 12px;
-            text-align: center;
-        }
-        
-        .cart-total h4 {
-            font-size: 1.8em;
-            font-weight: 700;
-        }
-        
-        .order-card {
-            border: 1px solid #e5e5e7;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            transition: all 0.3s;
-        }
-        
-        .order-card:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        
-        .order-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #e5e5e7;
-        }
-        
-        .order-id {
-            font-weight: 600;
-            font-size: 1.1em;
-        }
-        
-        .status-badge {
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 500;
-        }
-        
-        .status-pending {
-            background: #fff4e6;
-            color: #d97706;
-        }
-        
-        .status-confirmed {
-            background: #e6f4ff;
-            color: #0066cc;
-        }
-        
-        .status-shipped {
-            background: #f0e6ff;
-            color: #7c3aed;
-        }
-        
-        .status-delivered {
-            background: #e6ffe6;
-            color: #059669;
-        }
-        
-        .status-cancelled {
-            background: #ffe6e6;
-            color: #dc2626;
-        }
-        
-        .order-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-        
-        .order-detail-item {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        
-        .order-detail-label {
-            font-size: 0.85em;
-            color: #6e6e73;
-        }
-        
-        .order-detail-value {
-            font-weight: 600;
-            color: #1d1d1f;
-        }
-        
-        .profile-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .info-item {
-            padding: 15px;
-            background: #f5f5f7;
-            border-radius: 10px;
-        }
-        
-        .info-label {
-            font-size: 0.85em;
-            color: #6e6e73;
-            margin-bottom: 5px;
-        }
-        
-        .info-value {
-            font-size: 1.05em;
-            font-weight: 600;
-            color: #1d1d1f;
-        }
-        
-        .alert {
-            border-radius: 10px;
-            border: none;
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6e6e73;
-        }
-        
-        .empty-state i {
-            font-size: 4em;
-            margin-bottom: 20px;
-            opacity: 0.3;
-        }
-        
-        .empty-state h4 {
-            margin-bottom: 10px;
-        }
-        
-        @media (max-width: 768px) {
-            .dashboard-header {
-                padding: 40px 20px;
-            }
-            
-            .dashboard-header h1 {
-                font-size: 1.8em;
-            }
-            
-            .cart-item {
-                flex-direction: column;
-            }
-            
-            .cart-item img {
-                width: 100%;
-                height: 200px;
-            }
-        }
-    </style>
+/* Navigation */
+.navbar-custom {
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(20px);
+    padding: 12px 40px;
+}
+
+.dashboard-container {
+    max-width: 1400px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.dashboard-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 60px 40px;
+    border-radius: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+}
+
+.dashboard-header h1 {
+    font-size: 2.5em;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.dashboard-header p {
+    font-size: 1.1em;
+    opacity: 0.9;
+}
+
+.dashboard-tabs {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.nav-tabs {
+    border: none;
+    gap: 10px;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    color: #6e6e73;
+    font-weight: 500;
+    padding: 12px 24px;
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+
+.nav-tabs .nav-link:hover {
+    background: #f5f5f7;
+    color: #1d1d1f;
+}
+
+.nav-tabs .nav-link.active {
+    background: #0071e3;
+    color: white;
+}
+
+.content-card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+.content-card h3 {
+    font-size: 1.5em;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #1d1d1f;
+}
+
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 1px solid #d2d2d7;
+    padding: 12px 16px;
+    font-size: 0.95em;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #0071e3;
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+}
+
+.btn-primary {
+    background: #0071e3;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+.btn-primary:hover {
+    background: #0077ed;
+}
+
+.btn-danger {
+    border-radius: 10px;
+    padding: 8px 16px;
+}
+
+.cart-item {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    border: 1px solid #e5e5e7;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    transition: all 0.3s;
+}
+
+.cart-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.cart-item img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.cart-item-details {
+    flex: 1;
+}
+
+.cart-item-details h5 {
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.cart-item-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 0.9em;
+    color: #6e6e73;
+    margin-bottom: 10px;
+}
+
+.btn-outline-secondary:hover {
+    background: #f5f5f7;
+    border-color: #0071e3;
+    color: #0071e3;
+}
+
+.cart-total {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.cart-total h4 {
+    font-size: 1.8em;
+    font-weight: 700;
+}
+
+.order-card {
+    border: 1px solid #e5e5e7;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    transition: all 0.3s;
+}
+
+.order-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e5e5e7;
+}
+
+.order-id {
+    font-weight: 600;
+    font-size: 1.1em;
+}
+
+.status-badge {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 500;
+}
+
+.status-pending {
+    background: #fff4e6;
+    color: #d97706;
+}
+
+.status-confirmed {
+    background: #e6f4ff;
+    color: #0066cc;
+}
+
+.status-shipped {
+    background: #f0e6ff;
+    color: #7c3aed;
+}
+
+.status-delivered {
+    background: #e6ffe6;
+    color: #059669;
+}
+
+.status-cancelled {
+    background: #ffe6e6;
+    color: #dc2626;
+}
+
+.order-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.order-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.order-detail-label {
+    font-size: 0.85em;
+    color: #6e6e73;
+}
+
+.order-detail-value {
+    font-weight: 600;
+    color: #1d1d1f;
+}
+
+.profile-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.info-item {
+    padding: 15px;
+    background: #f5f5f7;
+    border-radius: 10px;
+}
+
+.info-label {
+    font-size: 0.85em;
+    color: #6e6e73;
+    margin-bottom: 5px;
+}
+
+.info-value {
+    font-size: 1.05em;
+    font-weight: 600;
+    color: #1d1d1f;
+}
+
+.alert {
+    border-radius: 10px;
+    border: none;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6e6e73;
+}
+
+.empty-state i {
+    font-size: 4em;
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+
+.empty-state h4 {
+    margin-bottom: 10px;
+}
+.color-option { 
+    width: 28px; 
+    height: 28px; 
+    border-radius: 50%; 
+    border: 2px solid #ccc; 
+    cursor: pointer; 
+    transition: 0.25s; 
+    margin-right: 5px; 
+    display: inline-block;
+}
+.color-option.selected { 
+    border: 3px solid #0071e3; 
+    transform: scale(1.1); 
+}
+.storage-option { 
+    padding: 8px 12px; 
+    border: 2px solid #ddd; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    transition: 0.25s; 
+    background: #fff; 
+    font-weight: 500; 
+    font-size: 0.9em; 
+    margin-right: 5px; 
+    display: inline-block;
+}
+.storage-option.selected { 
+    background: #0071e3; 
+    color: #fff; 
+    border-color: #0071e3; 
+}
+.options-flex { 
+    display: flex; 
+    gap: 8px; 
+    flex-wrap: wrap; 
+    margin-top: 5px; 
+}
+.option-group { 
+    margin-bottom: 15px; 
+}
+.option-label { 
+    font-size: 0.85em; 
+    color: #6e6e73; 
+    margin-bottom: 6px; 
+    font-weight: 500; 
+}
+.badge-condition { 
+    display: inline-block; 
+    padding: 4px 10px; 
+    border-radius: 12px; 
+    font-size: 0.75em; 
+    font-weight: 600; 
+    margin-left: 8px; 
+}
+.badge-refurbished { 
+    background: #34c759; 
+    color: white; 
+}
+.badge-new { 
+    background: #000; 
+    color: white; 
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        padding: 40px 20px;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 1.8em;
+    }
+    
+    .cart-item {
+        flex-direction: column;
+    }
+    
+    .cart-item img {
+        width: 100%;
+        height: 200px;
+    }
+}
+</style>
 </head>
 <body>
 
@@ -612,29 +758,113 @@ $orders = $orders_stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
 
         <!-- Cart Tab -->
-        <div class="tab-pane fade" id="cart" role="tabpanel">
+         <div class="tab-pane fade" id="cart" role="tabpanel">
             <div class="row">
                 <div class="col-lg-8">
                     <div class="content-card">
                         <h3><i class="fas fa-shopping-cart"></i> Shopping Cart (<?= count($cart_items); ?> items)</h3>
                         
                         <?php if (count($cart_items) > 0): ?>
-                            <?php foreach ($cart_items as $item): ?>
-                                <div class="cart-item">
+                            <?php foreach ($cart_items as $item): 
+                                $base_name = trim(preg_replace(['/\s*-\s*(128GB|256GB|512GB|1TB|2TB|64GB).*$/i', '/\s*\(.*\).*$/i'], '', $item['name']));
+                                $category = $item['category'];
+                                $options = $product_options[$category][$base_name] ?? ['colors' => [], 'storages' => [], 'price_map' => []];
+                                $is_macbook = strtolower($category) === 'macbook';
+                                $display_price = $item['cart_price'] ?? $item['product_base_price'] ?? 0;
+                            ?>
+                                <div class="cart-item" 
+                                    data-cart-id="<?= $item['cart_id'] ?>" 
+                                    data-price="<?= $display_price ?>" 
+                                    data-category="<?= htmlspecialchars($category) ?>"
+                                    data-base-name="<?= htmlspecialchars($base_name) ?>">
                                     <img src="../<?= htmlspecialchars($item['image_url'] ?? 'images/placeholder.png'); ?>" alt="<?= htmlspecialchars($item['name']); ?>">
                                     
                                     <div class="cart-item-details">
-                                        <h5><?= htmlspecialchars($item['name']); ?></h5>
-                                        <div class="cart-item-meta">
-                                            <?php if ($item['color']): ?>
-                                                <span><i class="fas fa-palette"></i> <?= htmlspecialchars($item['color']); ?></span>
+                                        <h5>
+                                            <?= htmlspecialchars($item['name']); ?>
+                                            <?php if ($item['condition_type'] === 'refurbished'): ?>
+                                                <span class="badge-condition badge-refurbished">Refurbished</span>
+                                            <?php else: ?>
+                                                <span class="badge-condition badge-new">New</span>
                                             <?php endif; ?>
-                                            <?php if ($item['storage']): ?>
-                                                <span><i class="fas fa-hdd"></i> <?= htmlspecialchars($item['storage']); ?></span>
-                                            <?php endif; ?>
-                                            <span><i class="fas fa-sort-numeric-up"></i> Qty: <?= $item['quantity']; ?></span>
+                                        </h5>
+
+                                          <?php if ($is_macbook): ?> 
+                                           <div class="cart-item-meta">
+                                                <?php if ($item['color']): ?>
+                                                    <span><i class="fas fa-palette"></i> <?= htmlspecialchars($item['color']); ?></span>
+                                                <?php endif; ?>
+                                                <?php if ($item['unified_memory']): ?>
+                                                    <span><i class="fas fa-memory"></i> <?= htmlspecialchars($item['unified_memory']); ?> Unified Memory</span>
+                                                <?php endif; ?>
+                                                <?php if ($item['storage']): ?>
+                                                    <span><i class="fas fa-hdd"></i> <?= htmlspecialchars($item['storage']); ?> Storage</span>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php else: ?>
+
+                                        <div class="option-group color-options">
+                                            <div class="option-label"><i class="fas fa-palette"></i> Color: <span class="current-color"><?= htmlspecialchars($item['color']) ?></span></div>
+                                            <div class="options-flex">
+                                                <?php
+                                                $current_color = trim($item['color']);
+                                                foreach ($options['colors'] as $color):
+                                                    $trimmed_color = trim($color);
+                                                ?>
+                                                    <div class="color-option change-option <?= $trimmed_color === $current_color ? 'selected' : '' ?>" 
+                                                        style="background: <?= getColorHex($trimmed_color) ?>" 
+                                                        data-type="color"
+                                                        data-value="<?= htmlspecialchars($trimmed_color) ?>"
+                                                        data-cart-id="<?= $item['cart_id'] ?>"
+                                                        title="<?= htmlspecialchars($trimmed_color) ?>">
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
                                         </div>
-                                        <p class="mb-0"><strong>₱<?= number_format($item['price'], 2); ?></strong> × <?= $item['quantity']; ?> = <strong class="text-primary">₱<?= number_format($item['subtotal'], 2); ?></strong></p>
+
+                                        <?php if (!$is_macbook && !empty($options['storages'])): ?>
+                                        <div class="option-group storage-options">
+                                            <div class="option-label"><i class="fas fa-hdd"></i> Storage: <span class="current-storage"><?= htmlspecialchars($item['storage']) ?></span></div>
+                                            <div class="options-flex">
+                                                <?php
+                                                $current_storage = trim($item['storage']);
+                                                foreach ($options['storages'] as $storage):
+                                                    $trimmed_storage = trim($storage);
+                                                ?>
+                                                    <div class="storage-option change-option <?= $trimmed_storage === $current_storage ? 'selected' : '' ?>" 
+                                                        data-type="storage"
+                                                        data-value="<?= htmlspecialchars($trimmed_storage) ?>" 
+                                                        data-cart-id="<?= $item['cart_id'] ?>">
+                                                        <?= htmlspecialchars($trimmed_storage) ?>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        </div>
+                                    <?php endif; ?>
+                                    <?php endif; ?>
+                                        
+                                        <!-- Quantity Controls -->
+                                        <div style="display: flex; align-items: center; gap: 15px; margin-top: 12px;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <button class="btn btn-sm btn-outline-secondary" onclick="updateCartQuantity(<?= $item['cart_id']; ?>, -1)" style="width: 32px; height: 32px; padding: 0; border-radius: 8px;">
+                                                    <i class="fas fa-minus"></i>
+                                                </button>
+                                                <span id="qty-<?= $item['cart_id']; ?>" style="min-width: 40px; text-align: center; font-weight: 600; font-size: 1.1em;">
+                                                    <?= $item['quantity']; ?>
+                                                </span>
+                                                <button class="btn btn-sm btn-outline-secondary" onclick="updateCartQuantity(<?= $item['cart_id']; ?>, 1)" style="width: 32px; height: 32px; padding: 0; border-radius: 8px;">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <p class="mb-0 mt-2">
+                                            <strong id="unit-price-<?= $item['cart_id']; ?>">₱<?= number_format($display_price, 2); ?></strong> × 
+                                            <span id="qty-display-<?= $item['cart_id']; ?>"><?= $item['quantity']; ?></span> = 
+                                            <strong class="text-primary" id="subtotal-<?= $item['cart_id']; ?>">
+                                                ₱<?= number_format($display_price * $item['quantity'], 2); ?>
+                                            </strong>
+                                        </p>
                                     </div>
                                     
                                     <div>
@@ -657,12 +887,17 @@ $orders = $orders_stmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                 </div>
 
-                <?php if (count($cart_items) > 0): ?>
+                <?php if (count($cart_items) > 0): 
+                    $cart_total = 0;
+                    foreach ($cart_items as $item) {
+                        $cart_total += ($item['cart_price'] ?? $item['product_base_price']) * $item['quantity'];
+                    }
+                ?>
                 <div class="col-lg-4">
                     <div class="content-card">
                         <div class="cart-total">
                             <p class="mb-2">Total Amount</p>
-                            <h4>₱<?= number_format($cart_total, 2); ?></h4>
+                            <h4 id="cart-total-amount">₱<?= number_format($cart_total, 2); ?></h4>
                             <p class="small mb-0 mt-2">+ Shipping fees (calculated at checkout)</p>
                         </div>
                         
@@ -731,9 +966,187 @@ $orders = $orders_stmt->fetchAll(PDO::FETCH_ASSOC);
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-function removeFromCart(cartId) {
-    if (confirm('Are you sure you want to remove this item from your cart?')) {
-        window.location.href = `remove_from_cart.php?id=${cartId}`;
+const priceMap = <?= json_encode($product_options) ?>;
+
+function showToast(message, type = 'success') {
+    const toastHtml = `
+        <div class="toast align-items-center text-white bg-${type} border-0" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999; border-radius: 10px;">
+            <div class="d-flex">
+                <div class="toast-body">${message}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', toastHtml);
+    const toastElement = document.body.lastElementChild;
+    const toast = new bootstrap.Toast(toastElement, { delay: 3000 });
+    toast.show();
+    toastElement.addEventListener('hidden.bs.toast', () => toastElement.remove());
+}
+
+// Handle color/storage changes
+document.querySelectorAll('.change-option').forEach(option => {
+    option.addEventListener('click', async function() {
+        if (this.classList.contains('selected')) return;
+
+        const cartId = this.dataset.cartId;
+        const type = this.dataset.type;
+        const cartItemElement = document.querySelector(`[data-cart-id="${cartId}"]`);
+
+        // Update UI first
+        if (type === 'color') {
+            cartItemElement.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+        } else if (type === 'storage') {
+            cartItemElement.querySelectorAll('.storage-option').forEach(o => o.classList.remove('selected'));
+            this.classList.add('selected');
+        }
+        
+        // Read current state from DOM
+        let selectedColor = cartItemElement.querySelector('.color-option.selected')?.dataset.value;
+        let selectedStorage = cartItemElement.querySelector('.storage-option.selected')?.dataset.value;
+        
+        // Handle edge cases
+        const category = cartItemElement.dataset.category.toLowerCase();
+        if (!selectedStorage) {
+            if (category === 'macbook') {
+                const itemName = cartItemElement.querySelector('h5').textContent;
+                const match = itemName.match(/(\d+GB|\d+TB)/i);
+                selectedStorage = match ? match[0].toUpperCase() : 'N/A';
+            } else {
+                const storageLabel = cartItemElement.querySelector('.current-storage');
+                if (storageLabel) selectedStorage = storageLabel.textContent;
+            }
+        }
+        if (!selectedColor) {
+            const colorLabel = cartItemElement.querySelector('.current-color');
+            if(colorLabel) selectedColor = colorLabel.textContent;
+        }
+
+        if (!selectedColor || !selectedStorage) {
+            showToast('Could not determine selection. Please reload.', 'danger');
+            return;
+        }
+        
+        cartItemElement.style.opacity = '0.5';
+        try {
+            const response = await fetch('../backend/api/update_cart_details.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cart_id: cartId, color: selectedColor, storage: selectedStorage })
+            });
+            const result = await response.json();
+            
+            if (result.success && result.new_price_per_unit != null) {
+                const newPrice = parseFloat(result.new_price_per_unit);
+                const currentQty = parseInt(cartItemElement.querySelector(`#qty-${cartId}`).textContent);
+                cartItemElement.dataset.price = newPrice;
+                
+                document.getElementById(`unit-price-${cartId}`).textContent = `₱${newPrice.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
+                document.getElementById(`subtotal-${cartId}`).textContent = `₱${(newPrice * currentQty).toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
+                
+                if(type === 'color') cartItemElement.querySelector('.current-color').textContent = selectedColor;
+                const storageLabel = cartItemElement.querySelector('.current-storage');
+                if(storageLabel && type === 'storage') storageLabel.textContent = selectedStorage;
+                recalculateCartTotal();
+                showToast('Cart updated!', 'success');
+            } else {
+                showToast(result.message || 'Failed to update', 'danger');
+                setTimeout(() => location.reload(), 1500); 
+            }
+        } catch (error) {
+            showToast('An error occurred.', 'danger');
+        } finally {
+            cartItemElement.style.opacity = '1';
+        }
+    });
+});
+
+async function updateCartQuantity(cartId, change) {
+    const qtyElement = document.getElementById(`qty-${cartId}`);
+    const qtyDisplayElement = document.getElementById(`qty-display-${cartId}`);
+    const newQty = parseInt(qtyElement.textContent) + change;
+
+    if (newQty < 1) {
+        if (confirm('Remove this item from cart?')) {
+            removeFromCart(cartId);
+        }
+        return;
+    }
+
+    try {
+        const response = await fetch('../backend/api/update_cart.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cart_id: cartId, quantity: newQty })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            qtyElement.textContent = newQty;
+            qtyDisplayElement.textContent = newQty;
+            
+            const cartItem = document.querySelector(`[data-cart-id="${cartId}"]`);
+            const itemPrice = parseFloat(cartItem.dataset.price);
+
+            document.getElementById(`unit-price-${cartId}`).textContent = 
+                `₱${itemPrice.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
+            
+            document.getElementById(`subtotal-${cartId}`).textContent = 
+                `₱${(itemPrice * newQty).toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
+            
+            recalculateCartTotal();
+            showToast('Cart updated successfully!', 'success');
+        } else {
+            showToast(result.message || 'Failed to update cart', 'danger');
+        }
+    } catch (error) {
+        showToast('Error updating cart', 'danger');
+    }
+}
+
+async function removeFromCart(cartId) {
+    if (!confirm('Are you sure you want to remove this item from your cart?')) return;
+    
+    try {
+        const response = await fetch('../backend/api/remove_from_cart.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cart_id: cartId })
+        });
+        const result = await response.json();
+        if (result.success) {
+            const itemToRemove = document.querySelector(`[data-cart-id="${cartId}"]`);
+            itemToRemove.style.transition = 'opacity 0.3s ease';
+            itemToRemove.style.opacity = '0';
+            setTimeout(() => {
+                itemToRemove.remove();
+                if (document.querySelectorAll('.cart-item').length === 0) location.reload();
+                else recalculateCartTotal();
+                showToast('Item removed', 'success');
+            }, 300);
+        } else {
+            showToast(result.message, 'danger');
+        }
+    } catch (error) {
+        showToast('Failed to remove item', 'danger');
+    }
+}
+
+function recalculateCartTotal() {
+    let total = 0;
+    document.querySelectorAll('.cart-item[data-cart-id]').forEach(item => {
+        const cartId = item.getAttribute('data-cart-id');
+        const price = parseFloat(item.getAttribute('data-price')) || 0;
+        const qtyElement = document.getElementById(`qty-${cartId}`);
+        const qty = qtyElement ? parseInt(qtyElement.textContent) || 0 : 0;
+        total += price * qty;
+    });
+    
+    const totalElement = document.getElementById('cart-total-amount');
+    if (totalElement) {
+        totalElement.textContent = `₱${total.toLocaleString('en-PH', {minimumFractionDigits: 2})}`;
     }
 }
 
@@ -741,7 +1154,6 @@ function viewOrderDetails(orderId) {
     window.location.href = `order_details.php?id=${orderId}`;
 }
 
-// Auto-dismiss alerts after 5 seconds
 setTimeout(() => {
     const alerts = document.querySelectorAll('.alert');
     alerts.forEach(alert => {

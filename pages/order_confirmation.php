@@ -342,7 +342,7 @@ $order_items = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
             <?php foreach ($order_items as $item): ?>
                 <div class="order-item">
-                    <img src="<?= htmlspecialchars($item['image_url']) ?>" 
+                    <img src="../<?= htmlspecialchars($item['image_url']) ?>" 
                          alt="<?= htmlspecialchars($item['name']) ?>" 
                          class="item-image">
                     <div class="item-details">
